@@ -21,12 +21,12 @@
   ([tag attrs & content]
    {:tag tag, :attrs attrs, :content content}))
 
-(deftest filter-html-elems-test
-  (is (= [(elt :div {:class "x"} :content [(elt :div {:class "x"} "foo")])
-          (elt :div {:class "x"} "foo")])
-      (filter-html-elems (comp #{"x"} :class :attrs)
-                         [(elt :h1 {:class "y"} "things!")
-                          (elt :div {:class "x"} (elt :div {:class "x"} "foo"))])))
+; (deftest filter-html-elems-test
+;   (is (= [(elt :div {:class "x"} :content [(elt :div {:class "x"} "foo")])
+;           (elt :div {:class "x"} "foo")])
+;       (filter-html-elems (comp #{"x"} :class :attrs)
+;                          [(elt :h1 {:class "y"} "things!")
+;                           (elt :div {:class "x"} (elt :div {:class "x"} "foo"))])))
 
 (deftest code-block-classes-test
   (is (= ["clojure" "ruby"]
