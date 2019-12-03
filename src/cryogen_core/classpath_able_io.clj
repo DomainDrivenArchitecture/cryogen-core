@@ -1,29 +1,27 @@
 (ns cryogen-core.classpath-able-io
   (:require [clojure.java.io :as io]
-            [clojure.string :as s]
-            [me.raynes.fs :as fs]))
+            [clojure.string :as s]))
+
+(defn file-from-cp-or-filesystem
+  [fs-prefix resource-path]
+  (let [file-from-cp (io/file (io/resource "templates/themes/bootstrap4-test/js"))
+        file-from-fs (io/file "./test-resources/templates/themes/bootstrap4-test/js")]
+    file-from-cp))
 
 (defn copy-dir 
   [source-path target-path ignored-files]
-  (fs/mkdirs target-path)
-  (let [^java.io.FilenameFilter filename-filter (apply reject-re-filter ignored-files)
-        files (.listFiles (io/file source-path) filename-filter)]
-    (doseq [^java.io.File f files]
-      (let [out (io/file target-path (.getName f))]
-        (if (.isDirectory f)
-          (copy-dir f out ignored-files)
-          (io/copy f out))))))
+  )
 
 (defn copy-resources
   [source-path target-path]
-  (let [ignored-files []]
+  (let [ignored-files []
+        source-file (io/file source-path)]
       (cond
         (not (.exists (io/file source-path)))
         (throw (IllegalArgumentException. (str "resource " source-path " not found")))
         (.isDirectory (io/file source-path))
         (copy-dir source-path target-path ignored-files)
-        :else
-        (fs/copy source-path target-path))))
+        )))
 
 (defn copy-resources-from-theme
   [theme target]

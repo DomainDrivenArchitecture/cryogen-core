@@ -15,6 +15,12 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
+(deftest test-file-from-cp-or-filesystem
+  (is (do
+        (sut/copy-resources-from-theme theme target)
+        (and (verify-dir-exists (str target "/js"))
+             (verify-file-exists (str target "/js/dummy.js"))))))
+
 (deftest test-copy-resources-from-theme
   (is (do
          (sut/copy-resources-from-theme theme target)
