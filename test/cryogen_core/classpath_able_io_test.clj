@@ -16,10 +16,10 @@
        (.isDirectory (io/file path))))
 
 (deftest test-file-from-cp-or-filesystem
-  (is (do
-        (sut/copy-resources-from-theme theme target)
-        (and (verify-dir-exists (str target "/js"))
-             (verify-file-exists (str target "/js/dummy.js"))))))
+  (is
+   (.exists (sut/file-from-cp-or-filesystem "./test-resources" "templates/themes/bootstrap4-test/js")))
+  (is
+   (.exists (sut/file-from-cp-or-filesystem "./" ".gitignore"))))
 
 (deftest test-copy-resources-from-theme
   (is (do
