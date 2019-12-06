@@ -3,22 +3,31 @@
             [clojure.string :as s]))
 
 ; TODO: loading from cpasspath results in nil even if file exists
+(defn file-from-cp
+  [resource-path]
+  (let [file-from-cp (io/file (io/resource resource-path))]
+    (try
+      (when (.exists file-from-cp)
+        file-from-cp)
+      (catch Exception e
+        nil))))
+
+(defn file-from-fs
+  [fs-prefix resource-path]
+  (let [file-from-fs (io/file (str fs-prefix resource-path))]
+    (try
+      (when (.exists file-from-fs)
+        file-from-fs)
+      (catch Exception e
+        nil))))
+     
 (defn file-from-cp-or-filesystem
   [fs-prefix resource-path]
-  (let [file-from-cp (io/file (io/resource resource-path))
-        file-from-fs (io/file (str fs-prefix resource-path))]
-    (println file-from-cp)
-    (println file-from-fs)
-    (try 
-      (when (.exists file-from-fs)
-        file-from-fs) 
-      (catch Exception e 
-        (try (when (.exists file-from-cp)
-               file-from-cp)
-             (catch Exception e 
-               (throw (IllegalArgumentException. 
-                       (str "resource " resource-path " neither found on classpath nor filesystem")))
-               ))))))
+  (let [from-fs (file-from-fs fs-prefix resource-path)]
+    (if (some? from-fs)
+      from-fs
+      (file-from-cp resource-path))))
+
 
 (defn copy-dir 
   [source-path target-path ignored-files]

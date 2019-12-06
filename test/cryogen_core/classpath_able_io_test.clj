@@ -15,10 +15,11 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
+(deftest test-file-from-cp
+  (is 
+   (sut/file-from-cp ".gitkeep")))
+
 (deftest test-file-from-cp-or-filesystem
-  (is (thrown? IllegalArgumentException
-                     (sut/file-from-cp-or-filesystem
-                      "./" "Not_Existing")))
   (is
    (.exists (sut/file-from-cp-or-filesystem 
              "./test-resources/" "templates/themes/bootstrap4-test/js")))
