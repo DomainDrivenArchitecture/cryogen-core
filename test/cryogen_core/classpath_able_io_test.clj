@@ -19,7 +19,7 @@
   (is
    (.exists (sut/file-from-cp-or-filesystem "./test-resources" "templates/themes/bootstrap4-test/js")))
   (is
-   (.exists (sut/file-from-cp-or-filesystem "./" ".gitignore"))))
+   (.exists (sut/file-from-cp-or-filesystem "./" ".gitkeep"))))
 
 (deftest test-copy-resources-from-theme
   (is (do

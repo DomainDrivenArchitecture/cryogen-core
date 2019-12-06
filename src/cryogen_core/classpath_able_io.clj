@@ -7,9 +7,11 @@
   [fs-prefix resource-path]
   (let [file-from-cp (io/file (io/resource resource-path))
         file-from-fs (io/file (str fs-prefix resource-path))]
+    (println file-from-cp)
+    (println file-from-fs)
     (try 
       (when (.exists file-from-fs)
-        file-from-fs)
+        file-from-fs) 
       (catch Exception e 
         (try (when (.exists file-from-cp)
                file-from-cp)
