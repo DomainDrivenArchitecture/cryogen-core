@@ -26,7 +26,7 @@
 (deftest test-filter-for-ignore-patterns
   (is (=
        ["file.js"]
-       (sut/filter-for-ignore-patterns #".*\\.ignore" ["file.js" "file.ignore"]))))
+       (sut/filter-for-ignore-patterns #".*\.ignore" ["file.js" "file.ignore"]))))
 
 (deftest test-file-from-cp
   (is 

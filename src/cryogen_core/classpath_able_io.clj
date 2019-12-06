@@ -10,6 +10,10 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as s]))
 
+(defn filter-for-ignore-patterns
+  [ignore-patterns source-list]
+  (filter #(not (re-matches ignore-patterns %)) source-list))
+
 (defn file-from-cp
   [resource-path]
   (let [file-from-cp (io/file (io/resource resource-path))]
@@ -35,6 +39,7 @@
       from-fs
       (file-from-cp resource-path))))
 
+; TODO: fix recursion as we put function calls on callstack here
 (defn copy-dir 
   [source-dir target-dir ignore-patterns]
   (let [source-list (.list source-dir)]
@@ -45,7 +50,7 @@
           (do
             (io/make-parents target-file)
             (io/copy f target-file))
-          (recur source-file target-file ignore-patterns))))))
+          (copy-dir source-file target-file ignore-patterns))))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
