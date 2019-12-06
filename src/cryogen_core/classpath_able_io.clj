@@ -30,11 +30,16 @@
 
 
 (defn copy-dir 
-  [source-dir target-file ignore-patterns]
+  [source-dir target-dir ignore-patterns]
   (let [source-list (.list source-dir)]
-    (io/make-parents target-file)
     (doseq [f source-list]
-      (io/copy f target-file))))
+      (let [target-file (io/file target-dir f)
+            source-file (io/file source-dir f)]
+        (if (.isDirectory source-file)
+          (copy-dir source-file target-file ignore-patterns)
+          (do
+            (io/make-parents target-file)
+            (io/copy f target-file)))))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
@@ -52,8 +57,7 @@
       )))
 
 (defn copy-resources-from-theme
-  [fs-prefix theme target]
-  (let [source-path (str "templates/themes/" theme "/js")
-        target-path (str target "/js")]
+  [fs-prefix theme target-path]
+  (let [source-path (str "templates/themes/" theme "/js")]
     (copy-resources fs-prefix source-path target-path "")))
 
