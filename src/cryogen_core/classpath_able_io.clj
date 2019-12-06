@@ -1,8 +1,15 @@
+;   Copyright (c) meissa. All rights reserved.
+;   The use and distribution terms for this software are covered by the
+;   Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;   which can be found in the file epl-v10.html at the root of this distribution.
+;   By using this software in any fashion, you are agreeing to be bound by
+;   the terms of this license.
+;   You must not remove this notice, or any other, from this software.
+
 (ns cryogen-core.classpath-able-io
   (:require [clojure.java.io :as io]
             [clojure.string :as s]))
 
-; TODO: loading from cpasspath results in nil even if file exists
 (defn file-from-cp
   [resource-path]
   (let [file-from-cp (io/file (io/resource resource-path))]
@@ -28,18 +35,17 @@
       from-fs
       (file-from-cp resource-path))))
 
-
 (defn copy-dir 
   [source-dir target-dir ignore-patterns]
   (let [source-list (.list source-dir)]
     (doseq [f source-list]
       (let [target-file (io/file target-dir f)
             source-file (io/file source-dir f)]
-        (if (.isDirectory source-file)
-          (copy-dir source-file target-file ignore-patterns)
+        (if (.isFile source-file)
           (do
             (io/make-parents target-file)
-            (io/copy f target-file)))))))
+            (io/copy f target-file))
+          (recur source-file target-file ignore-patterns))))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
