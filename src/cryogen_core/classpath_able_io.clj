@@ -30,29 +30,30 @@
 
 
 (defn copy-dir 
-  [source-dir target-path ignore-patterns]
+  [source-dir target-file ignore-patterns]
   (let [source-list (.list source-dir)]
+    (io/make-parents target-file)
     (doseq [f source-list]
-      (io/copy f (io/file target-path))))
-  )
+      (io/copy f target-file))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
-  (let [file (file-from-cp-or-filesystem fs-prefix source-path)
-        is-dir? (.isDirectory file)]
+  (let [source-file (file-from-cp-or-filesystem fs-prefix source-path)
+        target-file (io/file target-path source-path)
+        is-source-dir? (.isDirectory source-file)]
     (cond
-      (nil? file)
+      (nil? source-file)
       (throw (IllegalArgumentException. (str "resource " source-path " not found")))
-      is-dir?
-      (copy-dir file target-path ignore-patterns)
+      is-source-dir?
+      (copy-dir source-file target-file ignore-patterns)
       :else
-      nil
+      nil 
       ;(fs/copy src target)
       )))
 
 (defn copy-resources-from-theme
-  [theme target]
+  [fs-prefix theme target]
   (let [source-path (str "templates/themes/" theme "/js")
         target-path (str target "/js")]
-    copy-resources source-path target-path))
+    (copy-resources fs-prefix source-path target-path "")))
 

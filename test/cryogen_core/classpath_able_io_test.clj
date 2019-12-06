@@ -29,6 +29,8 @@
 
 (deftest test-copy-resources-from-theme
   (is (do
-         (sut/copy-resources-from-theme theme target)
-         (and (verify-dir-exists (str target "/js"))
-              (verify-file-exists (str target "/js/dummy.js"))))))
+         (sut/copy-resources-from-theme "./" theme target)
+         (and (verify-dir-exists 
+               (str target "/templates/themes/bootstrap4-test/js"))
+              (verify-file-exists 
+               (str target "/templates/themes/bootstrap4-test/js/dummy.js"))))))
