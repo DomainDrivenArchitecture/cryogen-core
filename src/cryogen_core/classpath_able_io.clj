@@ -40,7 +40,26 @@
       (file-from-cp resource-path))))
 
 ; TODO: fix recursion as we put function calls on callstack here
-(defn copy-dir 
+(defn copy-dir-2
+  [source-dir target-dir ignore-patterns]
+  (loop [source-list (.list source-dir)]
+    (when (not (nil? (first source-list)))
+      (let [f (first source-list)
+            target-file (io/file target-dir f)
+            source-file (io/file source-dir f)]
+        (println (str "frsit f: " f))
+        (if (.isFile source-file)
+          (do
+            (println (str "source file:    " source-file))
+            (io/make-parents target-file)
+            (io/copy f target-file)
+            (recur (drop 1 source-list)))
+          (do 
+            (println source-file)
+            (recur (concat (drop 1 source-list) (.list source-file)))))
+        ))))
+
+(defn copy-dir
   [source-dir target-dir ignore-patterns]
   (let [source-list (.list source-dir)]
     (doseq [f source-list]
@@ -48,6 +67,7 @@
             source-file (io/file source-dir f)]
         (if (.isFile source-file)
           (do
+            (println source-file)
             (io/make-parents target-file)
             (io/copy f target-file))
           (copy-dir source-file target-file ignore-patterns))))))
