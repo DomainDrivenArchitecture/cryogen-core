@@ -39,52 +39,23 @@
       from-fs
       (file-from-cp resource-path))))
 
-; TODO: fix recursion as we put function calls on callstack here
-(defn copy-dir-2
-  [source-dir target-dir ignore-patterns]
-  (loop [source-list (.list source-dir)]
-    (when (not (nil? (first source-list)))
-      (let [f (first source-list)
-            target-file (io/file target-dir f)
-            source-file (io/file source-dir f)]
-        (println (str "frsit f: " f))
-        (if (.isFile source-file)
-          (do
-            (println (str "source file:    " source-file))
-            (io/make-parents target-file)
-            (io/copy f target-file)
-            (recur (drop 1 source-list)))
-          (do 
-            (println source-file)
-            (recur (concat (drop 1 source-list) (.list source-file)))))
-        ))))
-
-(defn copy-dir-3
-  [source-dir target-dir ignore-patterns]
-    (loop [source-list (.list source-dir)
-           f (first source-list)
-           source-file (io/file source-dir f)
-           target-file (io/file target-dir f)]
-        (if (.isFile source-file)
-          (do
-            (println source-file)
-            (io/make-parents target-file)
-            (io/copy f target-file)
-            (recur (drop 1 source-list) (second source-list) (io/file source-dir f)))
-          (copy-dir source-file target-file ignore-patterns))))
-
 (defn copy-dir
   [source-dir target-dir ignore-patterns]
-  (let [source-list (.list source-dir)]
-    (doseq [f source-list]
-      (let [target-file (io/file target-dir f)
-            source-file (io/file source-dir f)]
-        (if (.isFile source-file)
-          (do
-            (println source-file)
-            (io/make-parents target-file)
-            (io/copy f target-file))
-          (copy-dir source-file target-file ignore-patterns))))))
+  (loop [l-source-list (.list source-dir)
+         l-source-dir  source-dir
+         l-target-dir  target-dir]
+    (let [f           (first l-source-list)
+          target-file (io/file target-dir f)
+          source-file (io/file source-dir f)]
+      (if (.isFile source-file)
+        (do
+          (println source-file)
+          (io/make-parents target-file)
+          (io/copy f target-file)
+          ;; continue copying files
+          (recur (drop 1 source-list) source-dir target-dir))
+        ;; recur down to contained directory
+        (recur (drop 1 source-list) source-file target-file)))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
@@ -103,6 +74,8 @@
 
 (defn copy-resources-from-theme
   [fs-prefix theme target-path]
-  (let [source-path (str "templates/themes/" theme "/js")]
-    (copy-resources fs-prefix source-path target-path "")))
+  (let [theme-path (str "templates/themes/" theme)]
+    (copy-resources fs-prefix (str theme-path "/css") target-path "")
+    (copy-resources fs-prefix (str theme-path "/js") target-path "")
+    (copy-resources fs-prefix (str theme-path "/html/404.html") target-path "")))
 

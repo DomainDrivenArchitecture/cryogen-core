@@ -51,4 +51,8 @@
                (str target "/templates/themes/bootstrap4-test/js/subdir"))
               (verify-file-exists
                (str target "/templates/themes/bootstrap4-test/js/subdir/subdummy.js"))
+              (verify-file-exists
+               (str target "/templates/themes/bootstrap4-test/css/dummy.css"))
+              (verify-file-exists
+               (str target "/templates/themes/bootstrap4-test/html/404.html"))
               ))))
