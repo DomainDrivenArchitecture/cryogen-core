@@ -41,23 +41,33 @@
       from-fs
       (file-from-cp resource-path))))
 
+(defn copy-file
+  [source-file ;first element of (.list source-dir)
+   target-file]
+  (do (io/make-parents target-file)
+      (io/copy source-file target-file)))
+
 (defn copy-dir
   [source-dir target-dir ignore-patterns]
   (loop [l-source-list (.list source-dir)
          l-source-dir  source-dir
          l-target-dir  target-dir]
+    (println (str "source-dir:  " source-dir "   target-dir: " target-dir "    f: ") (first l-source-list) "   second: " (second l-source-list))
     (let [f           (first l-source-list)
+          second? (not (nil? (second l-source-list)))
           target-file (io/file target-dir f)
           source-file (io/file source-dir f)]
+      ; TODO: .isFile is called on wrong path to the actual file, does not consider the path leading to the subdirectory of the file 
+      (println "type of f: " (type f))
       (if (.isFile source-file)
         (do
-          ;; TODO: Move the following to a new copy-file function
-          (io/make-parents target-file)
-          (io/copy f target-file)
+          (copy-file f target-file)
           ;; continue copying files
-          (recur (drop 1 source-list) source-dir target-dir))
+          (when second?
+            (recur (drop 1 l-source-list) source-dir target-dir)))
         ;; recur down to contained directory
-        (recur (drop 1 source-list) source-file target-file)))))
+        (do (println (type (.list source-file)))
+            (when second? (recur (concat (.list source-file) (drop 1 l-source-list)) source-file target-file)))))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
@@ -69,11 +79,10 @@
       (throw (IllegalArgumentException. (str "resource " source-path " not found")))
       is-source-dir?
       (copy-dir source-file target-file ignore-patterns)
-      :else
-      nil 
+      :else (copy-file source-file target-file)
       ;; TODO: Call copy-file fct. - take care on parameter.
-      ;(fs/copy src target)
       )))
+
 
 (defn copy-resources-from-theme
   [fs-prefix theme target-path]
