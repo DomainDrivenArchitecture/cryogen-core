@@ -59,6 +59,20 @@
             (recur (concat (drop 1 source-list) (.list source-file)))))
         ))))
 
+(defn copy-dir-3
+  [source-dir target-dir ignore-patterns]
+    (loop [source-list (.list source-dir)
+           f (first source-list)
+           source-file (io/file source-dir f)
+           target-file (io/file target-dir f)]
+        (if (.isFile source-file)
+          (do
+            (println source-file)
+            (io/make-parents target-file)
+            (io/copy f target-file)
+            (recur (drop 1 source-list) (second source-list) (io/file source-dir f)))
+          (copy-dir source-file target-file ignore-patterns))))
+
 (defn copy-dir
   [source-dir target-dir ignore-patterns]
   (let [source-list (.list source-dir)]
