@@ -14,6 +14,8 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
+;; TODO: make fct wipe-folders
+
 (defn file-from-cp
   [resource-path]
   (let [file-from-cp (io/file (io/resource resource-path))]
@@ -49,7 +51,7 @@
           source-file (io/file source-dir f)]
       (if (.isFile source-file)
         (do
-          (println source-file)
+          ;; TODO: Move the following to a new copy-file function
           (io/make-parents target-file)
           (io/copy f target-file)
           ;; continue copying files
@@ -69,6 +71,7 @@
       (copy-dir source-file target-file ignore-patterns)
       :else
       nil 
+      ;; TODO: Call copy-file fct. - take care on parameter.
       ;(fs/copy src target)
       )))
 
