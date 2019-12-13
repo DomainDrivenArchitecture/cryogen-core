@@ -47,13 +47,6 @@
   (do (io/make-parents target-file)
       (io/copy source-file target-file)))
 
-(defn- build-f-for-subdirs
-  "builds the list for subdirs and returns it"
-  [f]; TODO: f is not what i would be expecting here
-  (let [xs (.list f)]
-    (println (str "** f:    " f "    xs:  "  (apply str xs)))
-    (map #(str f "/" %) xs)))
-
 (defn copy-dir
   [source-dir target-dir ignore-patterns]
   (loop [source-list (.list source-dir)
