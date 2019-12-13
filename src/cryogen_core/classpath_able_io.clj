@@ -14,7 +14,9 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
-(defn wipe-folder [folder])
+(defn wipe-folder
+  [folder]
+  (io/delete-file "target/tmp"))
 
 (defn file-from-cp
   [resource-path]
