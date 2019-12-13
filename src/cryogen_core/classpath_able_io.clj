@@ -15,26 +15,12 @@
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
 (defn delete-file-recursive
-  [folder]
-  (loop [folder-list      (.list folder)
-         file-list (filter )
-         
-         file-path-prefix [""]]
-    (let [f           (first source-list)
-          second?     (not (nil? (second source-list)))
-          source-file (io/file folder (str (first file-path-prefix) f))]
-      (if (.isFile source-file)
-        (do
-          (io/delete-file source-file)
-          (when second?
-            (recur (drop 1 source-list) file-path-prefix)))
-        (let [sub-dir-list (.list source-file)
-              sub-dir-list-count (count sub-dir-list)]
-          (when (> sub-dir-list-count 0)
-            (recur (concat sub-dir-list (drop 1 source-list))
-                   (concat (repeat sub-dir-list-count 
-                                   (str (first file-path-prefix) f "/"))
-                           (drop 1 file-path-prefix)))))))))
+  [folders]
+  (let [file-list (filter #(.isFile %) folders)
+        dir-list (filter #(not (.isFile %)) folders)]
+    (doseq [file file-list] (io/delete-file file))
+    (when (not (empty? dir-list))
+      (recur (drop 1 dir-list)))))
 
 (defn file-from-cp
   [resource-path]
