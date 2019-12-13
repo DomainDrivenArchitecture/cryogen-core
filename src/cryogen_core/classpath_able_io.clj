@@ -10,6 +10,16 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as s]))
 
+(def public "resources/public")
+
+(defn path
+  "Creates path from given parts, ignore empty elements"
+  [& path-parts]
+  (->> path-parts
+       (remove s/blank?)
+       (s/join "/")
+       (#(s/replace % #"/+" "/"))))
+
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
@@ -75,8 +85,8 @@
       (do-copy source-file target-file ignore-patterns))))
 
 (defn copy-resources-from-theme
-  [fs-prefix theme target-path]
+  [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (copy-resources fs-prefix (str theme-path "/css") target-path "")
-    (copy-resources fs-prefix (str theme-path "/js") target-path "")
-    (copy-resources fs-prefix (str theme-path "/html/") target-path "")))
+    (copy-resources fs-prefix (str theme-path "/css") target-path ignore-patterns)
+    (copy-resources fs-prefix (str theme-path "/js") target-path ignore-patterns)
+    (copy-resources fs-prefix (str theme-path "/html/") target-path ignore-patterns)))

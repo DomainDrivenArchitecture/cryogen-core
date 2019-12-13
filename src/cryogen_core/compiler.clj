@@ -8,6 +8,7 @@
             [selmer.util :refer [set-custom-resource-path!]]
             [text-decoration.core :refer :all]
             [cryogen-core.io :as cryogen-io]
+            [cryogen-core.classpath-able-io :as cp-io]
             [cryogen-core.klipse :as klipse]
             [cryogen-core.markup :as m]
             [cryogen-core.rss :as rss]
@@ -533,8 +534,10 @@
     (set-custom-resource-path! (str "file:resources/templates/themes/" theme))
     (cryogen-io/wipe-public-folder keep-files)
     (println (blue "copying theme resources"))
-    ;; TODO: adjust for reading from jar
-    (cryogen-io/copy-resources-from-theme config)
+    (cp-io/copy-resources-from-theme "resources/templates/themes/" 
+                                     theme
+                                     (cp-io/path "resources/public" blog-prefix)
+                                     ignored-files)
     (println (blue "copying resources"))
     (cryogen-io/copy-resources config)
     (copy-resources-from-markup-folders config)
