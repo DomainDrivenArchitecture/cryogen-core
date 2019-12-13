@@ -14,7 +14,7 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
-;; TODO: make fct wipe-folders
+(defn wipe-folder [folder])
 
 (defn file-from-cp
   [resource-path]

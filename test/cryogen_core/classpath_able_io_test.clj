@@ -23,6 +23,21 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
+(deftest test-wipe-public-folder
+  (is
+   (do
+     (.mkdir (io/file target))
+     (sut/wipe-folder target)
+     (not (verify-dir-exists target)))))
+
+(deftest test-file-from-cp-or-filesystem
+  (is
+   (.exists (sut/file-from-cp-or-filesystem
+             "./test-resources/" "templates/themes/bootstrap4-test/js")))
+  (is
+   (.exists (sut/file-from-cp-or-filesystem
+             "./" ".gitkeep"))))
+
 (deftest test-filter-for-ignore-patterns
   (is (=
        ["file.js"]
