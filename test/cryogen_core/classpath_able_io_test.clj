@@ -26,22 +26,31 @@
        (.isDirectory (io/file path))))
 
 (deftest test-get-file-paths-recursive
-  (is (= 
+  (is (=
+       []
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
+  (is (=
        ["js/dummy.js"]
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"]))
-      (is (= 
-       ["/css/dummy.css"
-        "css"
-        "/html/404.html"
-        "/html/403.html"
-        "/html"
-        "html"
-        "js/subdir/subdummy.js"
-        "js/subdir/test.js"
-        "js/subdir"
-        "js/dummy.js"
-        "js"]
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" [""])))))
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
+  (is (=
+       ["js/subdir" 
+        "js/subdir/test.js" 
+        "js/subdir/subdummy.js"]
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/subdir"])))
+  (is (=
+       ["."
+        "./css"
+        "./css/dummy.css"
+        "./js"
+        "./js/subdir"
+        "./js/subdir/test.js"
+        "./js/subdir/subdummy.js"
+        "./js/dummy.js"
+        "./html"
+        "./html/403.html"
+        "./html/404.html"]
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["."])))
+  )
 
 ; (deftest test-delete-file-recursive
 ;   (is

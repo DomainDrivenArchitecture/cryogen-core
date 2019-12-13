@@ -68,16 +68,23 @@
    paths :- [s/Str]]
   (loop [paths  paths
          result []]
-    (when (not (empty? paths))
-      (let [path-to-work-with (first paths)
-            path-content      (.list (io/file (file-from-cp-or-filesystem
-                                               fs-prefix
-                                               (str base-path "/" path-to-work-with))))
-            file-list         (filter #(.isFile (io/file %)) path-content)
-            dir-list          (filter #(not (.isFile %)) path-content)]
-        (println path-content)
-        ;(println file-list)
-        (into result file-list)))))
+    (if (not (empty? paths))
+      (do
+        (let [path-to-work-with (first paths)
+              file-to-work-with (io/file (file-from-cp-or-filesystem
+                                          fs-prefix
+                                          (str base-path "/" path-to-work-with)))
+              result            (into result [path-to-work-with])]
+          (cond 
+            (nil? file-to-work-with) []
+            (.isFile file-to-work-with) (recur (drop 1 paths) result)
+            :else
+            (recur (into (drop 1 paths)
+                         (map #(str path-to-work-with "/" %) 
+                              (.list file-to-work-with)))
+                   result)
+            )))
+      result)))
 
 (defn copy-file
   [source-file
@@ -87,10 +94,10 @@
 
 (defn do-copy
   [source-dir target-dir ignore-patterns]
-  (loop [source-list (.list source-dir)
+  (loop [source-list      (.list source-dir)
          file-path-prefix [""]]
-    (let [f (first source-list)
-          second? (not (nil? (second source-list)))
+    (let [f           (first source-list)
+          second?     (not (nil? (second source-list)))
           target-file (io/file target-dir (str (first file-path-prefix) f))
           source-file (io/file source-dir (str (first file-path-prefix) f))]
       (if (.isFile source-file)
@@ -105,8 +112,8 @@
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
-  (let [source-file (file-from-cp-or-filesystem fs-prefix source-path)
-        target-file (io/file target-path source-path)
+  (let [source-file    (file-from-cp-or-filesystem fs-prefix source-path)
+        target-file    (io/file target-path source-path)
         is-source-dir? (.isDirectory source-file)]
     (if (nil? source-file)
       (throw (IllegalArgumentException. (str "resource " source-path " not found")))
