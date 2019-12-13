@@ -79,4 +79,4 @@
   (let [theme-path (str "templates/themes/" theme)]
     (copy-resources fs-prefix (str theme-path "/css") target-path "")
     (copy-resources fs-prefix (str theme-path "/js") target-path "")
-    (copy-resources fs-prefix (str theme-path "/html/404.html") target-path "")))
+    (copy-resources fs-prefix (str theme-path "/html/") target-path "")))
