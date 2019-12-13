@@ -47,27 +47,30 @@
   (do (io/make-parents target-file)
       (io/copy source-file target-file)))
 
+(defn- build-f-for-subdirs
+  "builds the list for subdirs and returns it"
+  [f]; TODO: f is not what i would be expecting here
+  (let [xs (.list f)]
+    (println (str "** f:    " f "    xs:  "  (apply str xs)))
+    (map #(str f "/" %) xs)))
+
 (defn copy-dir
   [source-dir target-dir ignore-patterns]
-  (loop [l-source-list (.list source-dir)
-         l-source-dir  source-dir
-         l-target-dir  target-dir]
-    (println (str "source-dir:  " source-dir "   target-dir: " target-dir "    f: ") (first l-source-list) "   second: " (second l-source-list))
-    (let [f           (first l-source-list)
-          second? (not (nil? (second l-source-list)))
-          target-file (io/file target-dir f)
-          source-file (io/file source-dir f)]
-      ; TODO: .isFile is called on wrong path to the actual file, does not consider the path leading to the subdirectory of the file 
-      (println "type of f: " (type f))
+  (loop [source-list (.list source-dir)
+         file-path-prefix [""]]
+    (let [f (first source-list)
+          second? (not (nil? (second source-list)))
+          target-file (io/file target-dir (str (first file-path-prefix) f))
+          source-file (io/file source-dir (str (first file-path-prefix) f))]
       (if (.isFile source-file)
         (do
-          (copy-file f target-file)
-          ;; continue copying files
+          (copy-file source-file target-file)
           (when second?
-            (recur (drop 1 l-source-list) source-dir target-dir)))
-        ;; recur down to contained directory
-        (do (println (type (.list source-file)))
-            (when second? (recur (concat (.list source-file) (drop 1 l-source-list)) source-file target-file)))))))
+            (recur (drop 1 source-list) (drop 1 file-path-prefix))))
+        (when (> (count (.list source-file)) 0)
+          (recur (concat (.list source-file) (drop 1 source-list))
+                 (concat (repeat (count (.list source-file)) (str (first file-path-prefix) f "/"))
+                         (drop 1 file-path-prefix))))))))
 
 (defn copy-resources
   [fs-prefix source-path target-path ignore-patterns]
