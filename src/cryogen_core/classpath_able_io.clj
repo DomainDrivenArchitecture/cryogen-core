@@ -14,13 +14,19 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
+; TODO: Datenstruktur [s/Str]
+
 (defn delete-file-recursive
   [folders]
-  (let [file-list (filter #(.isFile %) folders)
-        dir-list (filter #(not (.isFile %)) folders)]
-    (doseq [file file-list] (io/delete-file file))
-    (when (not (empty? dir-list))
-      (recur (drop 1 dir-list)))))
+  (when (not (empty? folders))
+    (let [file-to-work-with (first folders)
+          ; TODO: .list fehlt noch
+          file-list         (filter #(.isFile %) file-to-work-with)
+          dir-list          (filter #(not (.isFile %)) file-to-work-with)]
+      (doseq [file file-list] (io/delete-file file))
+      (when (not (empty? dir-list))
+        (recur (drop 1 dir-list)))
+      (io/delete-file file-to-work-with))))
 
 (defn file-from-cp
   [resource-path]

@@ -27,7 +27,7 @@
   (is
    (do
      (.mkdir (io/file target))
-     (sut/delete-file-recursive (io/file target))
+     (sut/delete-file-recursive (seq (io/file target)))
      (not (verify-dir-exists target)))))
 
 (deftest test-file-from-cp-or-filesystem
