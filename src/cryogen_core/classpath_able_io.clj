@@ -10,6 +10,16 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as s]))
 
+(def public "resources/public")
+
+(defn path
+  "Creates path from given parts, ignore empty elements"
+  [& path-parts]
+  (->> path-parts
+       (remove s/blank?)
+       (s/join "/")
+       (#(s/replace % #"/+" "/"))))
+
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
@@ -45,7 +55,7 @@
         file-from-fs)
       (catch Exception e
         nil))))
-     
+
 (defn file-from-cp-or-filesystem
   [fs-prefix resource-path]
   (let [from-fs (file-from-fs fs-prefix resource-path)]
@@ -54,12 +64,12 @@
       (file-from-cp resource-path))))
 
 (defn copy-file
-  [source-file ;first element of (.list source-dir)
+  [source-file
    target-file]
   (do (io/make-parents target-file)
       (io/copy source-file target-file)))
 
-(defn copy-dir
+(defn do-copy
   [source-dir target-dir ignore-patterns]
   (loop [source-list (.list source-dir)
          file-path-prefix [""]]
@@ -82,20 +92,13 @@
   (let [source-file (file-from-cp-or-filesystem fs-prefix source-path)
         target-file (io/file target-path source-path)
         is-source-dir? (.isDirectory source-file)]
-    (cond
-      (nil? source-file)
+    (if (nil? source-file)
       (throw (IllegalArgumentException. (str "resource " source-path " not found")))
-      is-source-dir?
-      (copy-dir source-file target-file ignore-patterns)
-      :else (copy-file source-file target-file)
-      ;; TODO: Call copy-file fct. - take care on parameter.
-      )))
-
+      (do-copy source-file target-file ignore-patterns))))
 
 (defn copy-resources-from-theme
-  [fs-prefix theme target-path]
+  [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (copy-resources fs-prefix (str theme-path "/css") target-path "")
-    (copy-resources fs-prefix (str theme-path "/js") target-path "")
-    (copy-resources fs-prefix (str theme-path "/html/404.html") target-path "")))
-
+    (copy-resources fs-prefix (str theme-path "/css") target-path ignore-patterns)
+    (copy-resources fs-prefix (str theme-path "/js") target-path ignore-patterns)
+    (copy-resources fs-prefix (str theme-path "/html/") target-path ignore-patterns)))
