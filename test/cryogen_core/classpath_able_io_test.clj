@@ -8,11 +8,11 @@
 
 (ns cryogen-core.classpath-able-io-test
   (:require [clojure.test :refer :all]
-            [clojure.string :as s]
             [clojure.java.io :as io]
+            [schema.core :as s]
             [cryogen-core.classpath-able-io :as sut]))
 
-(set-fn-validation! true)
+(s/set-fn-validation! true)
 
 (def theme "bootstrap4-test")
 
@@ -28,7 +28,7 @@
 (deftest test-get-file-paths-recursive
   (is (= 
        ["js/dummy.js"]
-       (sut/get-file-paths-recursive "templates/themes/bootstrap4-test" ["js/dummy.js"]))
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"]))
       (is (= 
        ["/css/dummy.css"
         "css"
@@ -41,7 +41,7 @@
         "js/subdir"
         "js/dummy.js"
         "js"]
-       (sut/get-file-paths-recursive "templates/themes/bootstrap4-test" [""])))))
+       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" [""])))))
 
 ; (deftest test-delete-file-recursive
 ;   (is

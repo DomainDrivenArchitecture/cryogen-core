@@ -8,7 +8,7 @@
 
 (ns cryogen-core.classpath-able-io
   (:require [clojure.java.io :as io]
-            [clojure.string :as s]
+            [clojure.string :as st]
             [schema.core :as s]))
 
 (def public "resources/public")
@@ -17,26 +17,13 @@
   "Creates path from given parts, ignore empty elements"
   [& path-parts]
   (->> path-parts
-       (remove s/blank?)
-       (s/join "/")
-       (#(s/replace % #"/+" "/"))))
+       (remove st/blank?)
+       (st/join "/")
+       (#(st/replace % #"/+" "/"))))
 
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
-  (filter #(not (re-matches ignore-patterns %)) source -list))
-
-; TODO: Datenstruktur [s/Str]
-
-(s/defn get-file-paths-recursive :- [s/Str]
-  [base-path :- s/Str
-   paths :- [s/Str]]
-  (loop [paths  paths
-         result []]
-    (when (not (empty? paths))
-      (let [path-to-work-with (first paths)
-            path-content      (.list (io/file (str base-path "/" path-to-work-with)))
-            file-list         (filter #(.isFile %) path-content)
-            dir-list          (filter #(not (.isFile %)) path-content)]))))
+  (filter #(not (re-matches ignore-patterns %)) source-list))
 
 ; (defn delete-file-recursive
 ;   [folders]
@@ -74,6 +61,23 @@
     (if (some? from-fs)
       from-fs
       (file-from-cp resource-path))))
+
+(s/defn get-file-paths-recursive :- [s/Str]
+  [fs-prefix :- s/Str
+   base-path :- s/Str
+   paths :- [s/Str]]
+  (loop [paths  paths
+         result []]
+    (when (not (empty? paths))
+      (let [path-to-work-with (first paths)
+            path-content      (.list (io/file (file-from-cp-or-filesystem
+                                               fs-prefix
+                                               (str base-path "/" path-to-work-with))))
+            file-list         (filter #(.isFile (io/file %)) path-content)
+            dir-list          (filter #(not (.isFile %)) path-content)]
+        (println path-content)
+        ;(println file-list)
+        (into result file-list)))))
 
 (defn copy-file
   [source-file
