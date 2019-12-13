@@ -12,6 +12,8 @@
             [clojure.java.io :as io]
             [cryogen-core.classpath-able-io :as sut]))
 
+(set-fn-validation! true)
+
 (def theme "bootstrap4-test")
 
 (def target "target/tmp")
@@ -23,12 +25,30 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
-(deftest test-wipe-public-folder
-  (is
-   (do
-     (.mkdir (io/file target))
-     (sut/delete-file-recursive (seq (io/file target)))
-     (not (verify-dir-exists target)))))
+(deftest test-get-file-paths-recursive
+  (is (= 
+       ["js/dummy.js"]
+       (sut/get-file-paths-recursive "templates/themes/bootstrap4-test" ["js/dummy.js"]))
+      (is (= 
+       ["/css/dummy.css"
+        "css"
+        "/html/404.html"
+        "/html/403.html"
+        "/html"
+        "html"
+        "js/subdir/subdummy.js"
+        "js/subdir/test.js"
+        "js/subdir"
+        "js/dummy.js"
+        "js"]
+       (sut/get-file-paths-recursive "templates/themes/bootstrap4-test" [""])))))
+
+; (deftest test-delete-file-recursive
+;   (is
+;    (do
+;      (.mkdir (io/file target))
+;      (sut/delete-file-recursive (seq (io/file target)))
+;      (not (verify-dir-exists target)))))
 
 (deftest test-file-from-cp-or-filesystem
   (is
