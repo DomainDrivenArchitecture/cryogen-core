@@ -82,13 +82,13 @@
     (doseq [path resource-paths]
       (io/delete-file path))))
 
-(defn copy-file
+(defn copy-file!
   [source-file
    target-file]
   (do (io/make-parents target-file)
       (io/copy source-file target-file)))
 
-(defn do-copy
+(defn do-copy!
   [source-dir target-dir ignore-patterns]
   (loop [source-list      (.list source-dir)
          file-path-prefix [""]]
@@ -98,7 +98,7 @@
           source-file (io/file source-dir (str (first file-path-prefix) f))]
       (if (.isFile source-file)
         (do
-          (copy-file source-file target-file)
+          (copy-file! source-file target-file)
           (when second?
             (recur (drop 1 source-list) (drop 1 file-path-prefix))))
         (when (> (count (.list source-file)) 0)
@@ -106,18 +106,18 @@
                  (concat (repeat (count (.list source-file)) (str (first file-path-prefix) f "/"))
                          (drop 1 file-path-prefix))))))))
 
-(defn copy-resources
+(defn copy-resources!
   [fs-prefix source-path target-path ignore-patterns]
   (let [source-file    (file-from-cp-or-filesystem fs-prefix source-path)
         target-file    (io/file target-path source-path)
         is-source-dir? (.isDirectory source-file)]
     (if (nil? source-file)
       (throw (IllegalArgumentException. (str "resource " source-path " not found")))
-      (do-copy source-file target-file ignore-patterns))))
+      (do-copy! source-file target-file ignore-patterns))))
 
-(defn copy-resources-from-theme
+(defn copy-resources-from-theme!  
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (copy-resources fs-prefix (str theme-path "/css") target-path ignore-patterns)
-    (copy-resources fs-prefix (str theme-path "/js") target-path ignore-patterns)
-    (copy-resources fs-prefix (str theme-path "/html/") target-path ignore-patterns)))
+    (copy-resources! fs-prefix (str theme-path "/css") target-path ignore-patterns)
+    (copy-resources! fs-prefix (str theme-path "/js") target-path ignore-patterns)
+    (copy-resources! fs-prefix (str theme-path "/html/") target-path ignore-patterns)))

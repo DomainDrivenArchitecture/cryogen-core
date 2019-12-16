@@ -56,7 +56,7 @@
   (is
    (do
      (.mkdir (io/file (str "target/tmp" target)))
-     (sut/delete-resource-recursive! (str "target/tmp"target))
+     (sut/delete-resource-recursive! (str "target/tmp" target))
      (not (verify-dir-exists (str "target/tmp" target))))))
 
 (deftest test-file-from-cp-or-filesystem
@@ -84,19 +84,19 @@
    (.exists (sut/file-from-cp-or-filesystem 
              "./" ".gitkeep"))))
 
-(deftest test-copy-resources-from-theme
-  (is (do
-         (sut/copy-resources-from-theme "./" theme target "")
-         (and (verify-dir-exists
-               (str target "/templates/themes/bootstrap4-test/js"))
-              (verify-file-exists
-               (str target "/templates/themes/bootstrap4-test/js/dummy.js"))
-              (verify-dir-exists
-               (str target "/templates/themes/bootstrap4-test/js/subdir"))
-              (verify-file-exists
-               (str target "/templates/themes/bootstrap4-test/js/subdir/subdummy.js"))
-              (verify-file-exists
-               (str target "/templates/themes/bootstrap4-test/css/dummy.css"))
-              (verify-file-exists
-               (str target "/templates/themes/bootstrap4-test/html/404.html"))
-              ))))
+(deftest test-copy-resources-from-theme!  (is (do
+        (sut/delete-resource-recursive! (str "target/tmp" target))
+        (sut/copy-resources-from-theme! "./" theme target "")
+        (and (verify-dir-exists
+              (str target "/templates/themes/bootstrap4-test/js"))
+             (verify-file-exists
+              (str target "/templates/themes/bootstrap4-test/js/dummy.js"))
+             (verify-dir-exists
+              (str target "/templates/themes/bootstrap4-test/js/subdir"))
+             (verify-file-exists
+              (str target "/templates/themes/bootstrap4-test/js/subdir/subdummy.js"))
+             (verify-file-exists
+              (str target "/templates/themes/bootstrap4-test/css/dummy.css"))
+             (verify-file-exists
+              (str target "/templates/themes/bootstrap4-test/html/404.html"))
+             ))))
