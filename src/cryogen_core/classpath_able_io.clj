@@ -25,18 +25,6 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
-; (defn delete-file-recursive
-;   [folders]
-;   (when (not (empty? folders))
-;     (let [file-to-work-with (first folders)
-;           ; TODO: .list fehlt noch
-;           file-list         (filter #(.isFile %) file-to-work-with)
-;           dir-list          (filter #(not (.isFile %)) file-to-work-with)]
-;       (doseq [file file-list] (io/delete-file file))
-;       (when (not (empty? dir-list))
-;         (recur (drop 1 dir-list)))
-;       (io/delete-file file-to-work-with))))
-
 (defn file-from-cp
   [resource-path]
   (let [file-from-cp (io/file (io/resource resource-path))]
@@ -62,7 +50,7 @@
       from-fs
       (file-from-cp resource-path))))
 
-(s/defn get-file-paths-recursive :- [s/Str]
+(s/defn get-resource-paths-recursive :- [s/Str]
   [fs-prefix :- s/Str
    base-path :- s/Str
    paths :- [s/Str]]
@@ -85,6 +73,14 @@
                    result)
             )))
       result)))
+
+(s/defn delete-resource-recursive!
+  [path :- s/Str]
+  (let [resource-paths
+        (reverse (get-resource-paths-recursive "" path [""]))]
+    (println resource-paths)
+    (doseq [path resource-paths]
+      (io/delete-file path))))
 
 (defn copy-file
   [source-file

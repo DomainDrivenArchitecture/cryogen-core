@@ -25,18 +25,18 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
-(deftest test-get-file-paths-recursive
+(deftest test-get-resource-paths-recursive
   (is (=
        []
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
+       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
   (is (=
        ["js/dummy.js"]
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
+       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
   (is (=
        ["js/subdir" 
         "js/subdir/test.js" 
         "js/subdir/subdummy.js"]
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["js/subdir"])))
+       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["js/subdir"])))
   (is (=
        ["."
         "./css"
@@ -49,15 +49,15 @@
         "./html"
         "./html/403.html"
         "./html/404.html"]
-       (sut/get-file-paths-recursive "" "templates/themes/bootstrap4-test" ["."])))
+       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["."])))
   )
 
-; (deftest test-delete-file-recursive
-;   (is
-;    (do
-;      (.mkdir (io/file target))
-;      (sut/delete-file-recursive (seq (io/file target)))
-;      (not (verify-dir-exists target)))))
+(deftest test-delete-resource-recursive
+  (is
+   (do
+     (.mkdir (io/file (str "target/tmp" target)))
+     (sut/delete-resource-recursive! (str "target/tmp"target))
+     (not (verify-dir-exists (str "target/tmp" target))))))
 
 (deftest test-file-from-cp-or-filesystem
   (is
