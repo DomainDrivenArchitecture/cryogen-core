@@ -106,5 +106,5 @@
              (verify-file-exists
               (str target "/css/dummy.css"))
              (verify-file-exists
-              (str target "/html/404.html"))
+              (str target "/404.html"))
              ))))
