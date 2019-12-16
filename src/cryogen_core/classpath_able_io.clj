@@ -87,6 +87,7 @@
             )))
       result)))
 
+; TODO: Add files to keep
 (s/defn delete-resource-recursive!
   [path :- s/Str]
   (let [resource-paths
@@ -95,6 +96,7 @@
     (doseq [resource-path resource-paths]
       (io/delete-file (str path resource-path)))))
 
+; TODO: add ignore patterns filtering
 (defn copy-resources!
   [fs-prefix ;:- s/Str 
    base-path ;:- s/Str
