@@ -491,8 +491,10 @@
   "Generates all the html and copies over resources specified in the config"
   []
   (println (green "compiling assets..."))
-  (let [{:keys [^String site-url blog-prefix rss-name recent-posts sass-dest keep-files ignored-files previews?
-                author-root-uri theme debug? page-model page-root-uri]
+  (let [{:keys [^String site-url blog-prefix rss-name recent-posts 
+                sass-dest keep-files ignored-files previews?
+                author-root-uri theme debug? page-model 
+                page-root-uri resources]
          :as   config} (read-config)
         posts                                                                                                                                                               (map klipsify (add-prev-next (read-posts config)))
         posts-by-tag                                                                                                                                                        (group-by-tags posts)
@@ -533,15 +535,19 @@
     ;; TODO: replace by file-resource-path or classpath-resource-path
     (set-custom-resource-path! (str "file:resources/templates/themes/" theme))
     ;(cryogen-io/wipe-public-folder keep-files)
-    (cp-io/delete-resource-recursive! "resources/public")
+    (cp-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
     (println (blue "copying theme resources"))
     ;(cryogen-io/copy-resources-from-theme config)
-    (cp-io/copy-resources-from-theme! "resources/templates/themes/"
+    (cp-io/copy-resources-from-theme! "resources/"
                                       theme
                                       (cp-io/path "resources/public" blog-prefix)
                                       ignored-files)
     (println (blue "copying resources"))
-    (cryogen-io/copy-resources config)
+    ;(cryogen-io/copy-resources config)
+    (cp-io/copy-resources-from-user! "resources/"
+                                      resources
+                                      (cp-io/path "resources/public" blog-prefix)
+                                      ignored-files)
     (copy-resources-from-markup-folders config)
     (compile-pages params modelled-pages)
     (compile-posts params posts)
