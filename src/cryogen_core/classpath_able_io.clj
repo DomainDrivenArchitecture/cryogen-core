@@ -92,7 +92,6 @@
   (let [resource-paths
         (reverse (get-resource-paths-recursive 
                   "" path [""] :from-cp false))]
-    (println resource-paths)
     (doseq [path resource-paths]
       (io/delete-file path))))
 
@@ -113,9 +112,6 @@
             source-file (io/file (file-from-cp-or-filesystem 
                                   fs-prefix 
                                   (str base-path "/" resource-path)))]
-        (println resource-path)
-        (println source-file)
-        (println target-file)
         (io/make-parents target-file)
         (when (.isFile source-file)
           (io/copy source-file target-file)))))))
