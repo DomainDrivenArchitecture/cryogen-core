@@ -44,16 +44,27 @@
         nil))))
 
 (defn file-from-cp-or-filesystem
-  [fs-prefix resource-path]
-  (let [from-fs (file-from-fs fs-prefix resource-path)]
-    (if (some? from-fs)
-      from-fs
-      (file-from-cp resource-path))))
+  [fs-prefix resource-path
+   & {:keys [from-cp from-fs]
+      :or   {from-cp true
+             from-fs true}}]
+  (let [from-fs-file (if from-fs
+                       (file-from-fs fs-prefix resource-path)
+                       nil)
+        from-cp-file (if from-cp 
+                       (file-from-cp resource-path)
+                       nil)]
+    (if (some? from-fs-file)
+      from-fs-file
+      from-cp-file)))
 
-(s/defn get-resource-paths-recursive :- [s/Str]
-  [fs-prefix :- s/Str
-   base-path :- s/Str
-   paths :- [s/Str]]
+(defn get-resource-paths-recursive ;:- [s/Str]
+  [fs-prefix ;:- s/Str
+   base-path ;:- s/Str
+   paths ;:- [s/Str]
+   & {:keys [from-cp from-fs]
+      :or   {from-cp true
+             from-fs true}}]
   (loop [paths  paths
          result []]
     (if (not (empty? paths))
@@ -61,7 +72,9 @@
         (let [path-to-work-with (first paths)
               file-to-work-with (io/file (file-from-cp-or-filesystem
                                           fs-prefix
-                                          (str base-path "/" path-to-work-with)))
+                                          (str base-path "/" path-to-work-with)
+                                          :from-cp from-cp 
+                                          :from-fs from-fs))
               result            (into result [path-to-work-with])]
           (cond 
             (nil? file-to-work-with) []
@@ -77,47 +90,38 @@
 (s/defn delete-resource-recursive!
   [path :- s/Str]
   (let [resource-paths
-        (reverse (get-resource-paths-recursive "" path [""]))]
+        (reverse (get-resource-paths-recursive 
+                  "" path [""] :from-cp false))]
     (println resource-paths)
     (doseq [path resource-paths]
       (io/delete-file path))))
 
-(defn copy-file!
-  [source-file
-   target-file]
-  (do (io/make-parents target-file)
-      (io/copy source-file target-file)))
-
-(defn do-copy!
-  [source-dir target-dir ignore-patterns]
-  (loop [source-list      (.list source-dir)
-         file-path-prefix [""]]
-    (let [f           (first source-list)
-          second?     (not (nil? (second source-list)))
-          target-file (io/file target-dir (str (first file-path-prefix) f))
-          source-file (io/file source-dir (str (first file-path-prefix) f))]
-      (if (.isFile source-file)
-        (do
-          (copy-file! source-file target-file)
-          (when second?
-            (recur (drop 1 source-list) (drop 1 file-path-prefix))))
-        (when (> (count (.list source-file)) 0)
-          (recur (concat (.list source-file) (drop 1 source-list))
-                 (concat (repeat (count (.list source-file)) (str (first file-path-prefix) f "/"))
-                         (drop 1 file-path-prefix))))))))
-
 (defn copy-resources!
-  [fs-prefix source-path target-path ignore-patterns]
-  (let [source-file    (file-from-cp-or-filesystem fs-prefix source-path)
-        target-file    (io/file target-path source-path)
-        is-source-dir? (.isDirectory source-file)]
-    (if (nil? source-file)
-      (throw (IllegalArgumentException. (str "resource " source-path " not found")))
-      (do-copy! source-file target-file ignore-patterns))))
+  [fs-prefix ;:- s/Str 
+   base-path ;:- s/Str
+   source-paths ;:- [s/Str]
+   target-path  ;:- s/Str
+   ignore-patterns ;:- s/Str
+   ]
+  (let [resource-paths
+        (get-resource-paths-recursive fs-prefix base-path source-paths)]
+     (if (empty? resource-paths)
+      (throw (IllegalArgumentException. (str "resource " resource-paths ", " 
+                                             source-paths " not found")))
+    (doseq [resource-path resource-paths]
+      (let [target-file (io/file target-path resource-path)
+            source-file (io/file (file-from-cp-or-filesystem 
+                                  fs-prefix 
+                                  (str base-path "/" resource-path)))]
+        (println resource-path)
+        (println source-file)
+        (println target-file)
+        (io/make-parents target-file)
+        (when (.isFile source-file)
+          (io/copy source-file target-file)))))))
 
 (defn copy-resources-from-theme!  
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (copy-resources! fs-prefix (str theme-path "/css") target-path ignore-patterns)
-    (copy-resources! fs-prefix (str theme-path "/js") target-path ignore-patterns)
-    (copy-resources! fs-prefix (str theme-path "/html/") target-path ignore-patterns)))
+    (copy-resources! fs-prefix theme-path ["css" "js" "html"] 
+                     target-path ignore-patterns)))

@@ -534,10 +534,10 @@
     (set-custom-resource-path! (str "file:resources/templates/themes/" theme))
     (cryogen-io/wipe-public-folder keep-files)
     (println (blue "copying theme resources"))
-    (cp-io/copy-resources-from-theme "resources/templates/themes/" 
-                                     theme
-                                     (cp-io/path "resources/public" blog-prefix)
-                                     ignored-files)
+    (cp-io/copy-resources-from-theme! "resources/templates/themes/"
+                                      theme
+                                      (cp-io/path "resources/public" blog-prefix)
+                                      ignored-files)
     (println (blue "copying resources"))
     (cryogen-io/copy-resources config)
     (copy-resources-from-markup-folders config)

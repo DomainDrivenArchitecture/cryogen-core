@@ -25,18 +25,34 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
+(deftest test-file-from-cp-or-filesystem
+  (is
+   (some? (sut/file-from-cp-or-filesystem
+           "./test-resources/"
+           "templates/themes/bootstrap4-test/js")))
+  (is
+   (some? (sut/file-from-cp-or-filesystem
+             "./not-existing-so-load-from-cp" ".gitkeep"))))
+
 (deftest test-get-resource-paths-recursive
   (is (=
        []
        (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
   (is (=
        ["js/dummy.js"]
-       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
+       (sut/get-resource-paths-recursive 
+        "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
+  (is (=
+       []
+       (sut/get-resource-paths-recursive 
+        "" "templates/themes/bootstrap4-test" ["js/dummy.js"]
+        :from-cp false)))
   (is (=
        ["js/subdir" 
         "js/subdir/test.js" 
         "js/subdir/subdummy.js"]
-       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["js/subdir"])))
+       (sut/get-resource-paths-recursive 
+        "" "templates/themes/bootstrap4-test" ["js/subdir"])))
   (is (=
        ["."
         "./css"
@@ -59,14 +75,6 @@
      (sut/delete-resource-recursive! (str "target/tmp" target))
      (not (verify-dir-exists (str "target/tmp" target))))))
 
-(deftest test-file-from-cp-or-filesystem
-  (is
-   (.exists (sut/file-from-cp-or-filesystem
-             "./test-resources/" "templates/themes/bootstrap4-test/js")))
-  (is
-   (.exists (sut/file-from-cp-or-filesystem
-             "./" ".gitkeep"))))
-
 (deftest test-filter-for-ignore-patterns
   (is (=
        ["file.js"]
@@ -88,15 +96,15 @@
         (sut/delete-resource-recursive! (str "target/tmp" target))
         (sut/copy-resources-from-theme! "./" theme target "")
         (and (verify-dir-exists
-              (str target "/templates/themes/bootstrap4-test/js"))
+              (str target "/js"))
              (verify-file-exists
-              (str target "/templates/themes/bootstrap4-test/js/dummy.js"))
+              (str target "/js/dummy.js"))
              (verify-dir-exists
-              (str target "/templates/themes/bootstrap4-test/js/subdir"))
+              (str target "/js/subdir"))
              (verify-file-exists
-              (str target "/templates/themes/bootstrap4-test/js/subdir/subdummy.js"))
+              (str target "/js/subdir/subdummy.js"))
              (verify-file-exists
-              (str target "/templates/themes/bootstrap4-test/css/dummy.css"))
+              (str target "/css/dummy.css"))
              (verify-file-exists
-              (str target "/templates/themes/bootstrap4-test/html/404.html"))
+              (str target "/html/404.html"))
              ))))
