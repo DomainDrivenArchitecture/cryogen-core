@@ -92,8 +92,8 @@
   (let [resource-paths
         (reverse (get-resource-paths-recursive 
                   "" path [""] :from-cp false))]
-    (doseq [path resource-paths]
-      (io/delete-file path))))
+    (doseq [resource-path resource-paths]
+      (io/delete-file (str path resource-path)))))
 
 (defn copy-resources!
   [fs-prefix ;:- s/Str 
