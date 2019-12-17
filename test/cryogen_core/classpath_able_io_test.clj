@@ -25,14 +25,65 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
-(deftest test-uri-from-cp-or-filesystem
+(defn filter-object
+  [e]
+  {:path          (:path e)
+   :source-type   (:source-type e)
+   :resource-type (:resource-type e)})
+
+(deftest test-uri-from-cp
   (is
-   (some? (sut/uri-from-cp-or-filesystem
+   (sut/file-from-cp ".gitkeep")))
+
+(deftest test-resource-from-cp-or-fs
+  (is
+   (.exists 
+    (:file 
+     (sut/resource-from-cp-or-fs
+      "./test-resources/"
+      "templates/themes/bootstrap4-test"
+      "js"))))
+  (is
+   (.exists 
+    (:file 
+     (sut/resource-from-cp-or-fs
+      "./" "" ".gitkeep"))))
+  (is
+   (some? (sut/resource-from-cp-or-fs
            "./test-resources/"
-           "templates/themes/bootstrap4-test/js")))
+           "templates/themes/bootstrap4-test"
+           "js")))
   (is
-   (some? (sut/uri-from-cp-or-filesystem
-             "./not-existing-so-load-from-cp" ".gitkeep"))))
+   (some? (sut/resource-from-cp-or-fs
+           "./not-existing-so-load-from-cp" "" ".gitkeep")))
+  (is (=
+       {:path          "js/subdir"
+        :source-type   :classpath
+        :resource-type :dir}
+       (filter-object 
+        (sut/resource-from-cp-or-fs
+         "./not-existing-so-load-from-cp"
+         "templates/themes/bootstrap4-test"
+         "js/subdir")))))
+
+(deftest test-get-resources-recursive
+  (is (=
+       []
+       (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
+  (is (=
+       [{:path          "js/dummy.js"
+         :source-type   :classpath
+         :resource-type :file}]
+       (map filter-object
+            (sut/get-resources-recursive
+             "" "templates/themes/bootstrap4-test" ["js/dummy.js"]))))
+  (is (=
+       ["js/subdir"
+        "js/subdir/test.js"
+        "js/subdir/subdummy.js"]
+       (map #(:path %)
+            (sut/get-resources-recursive
+             "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
 
 (deftest test-get-resource-paths-recursive
   (is (=
@@ -79,18 +130,6 @@
   (is (=
        ["file.js"]
        (sut/filter-for-ignore-patterns #".*\.ignore" ["file.js" "file.ignore"]))))
-
-(deftest test-uri-from-cp
-  (is 
-   (sut/file-from-cp ".gitkeep")))
-
-(deftest test-uri-from-cp-or-filesystem
-  (is
-   (.exists (sut/uri-from-cp-or-filesystem 
-             "./test-resources/" "templates/themes/bootstrap4-test/js")))
-  (is
-   (.exists (sut/uri-from-cp-or-filesystem 
-             "./" ".gitkeep"))))
 
 (deftest test-copy-resources-from-theme!  (is (do
         (sut/delete-resource-recursive! (str "target/tmp" target))

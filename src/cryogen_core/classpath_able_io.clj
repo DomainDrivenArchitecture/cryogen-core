@@ -67,6 +67,10 @@
                      (.isFile file) :file
                      :else :unknown)}))
 
+(s/defn is-file? :- s/Bool
+  [resource :- Resource]
+  (= :file (:resource-type resource)))
+
 (s/defn file-from-cp ;  :- File
   [resource-path :- Path]
   (let [file-from-cp (io/file (io/resource resource-path))]
@@ -86,17 +90,21 @@
       (catch Exception e
         nil))))
 
-(defn resource-from-cp-or-filesystem ; :- Resource 
+(defn resource-from-cp-or-fs ; :- Resource 
   [fs-prefix ; :- Prefix
+   base-path ; :- Path
    resource-path ; :- Path
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [file-from-fs (if from-fs
-                       (file-from-fs fs-prefix resource-path)
+  (let [full-path    (if (empty? base-path)
+                       resource-path
+                       (str base-path "/" resource-path))
+        file-from-fs (if from-fs
+                       (file-from-fs fs-prefix full-path)
                        nil)
         file-from-cp (if from-cp
-                       (file-from-cp resource-path)
+                       (file-from-cp full-path)
                        nil)]
     (cond 
       (some? file-from-fs)
@@ -105,20 +113,19 @@
       (create-resource resource-path file-from-cp :classpath)
       :else nil)))
 
-(defn uri-from-cp-or-filesystem
-  [fs-prefix resource-path
+(defn file-from-cp-or-fs ; :- File
+  [fs-prefix ; :- Prefix
+   base-path ; :- Path
+   resource-path; :- Path
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [from-fs-file (if from-fs
-                       (file-from-fs fs-prefix resource-path)
-                       nil)
-        from-cp-file (if from-cp 
-                       (file-from-cp resource-path)
-                       nil)]
-    (if (some? from-fs-file)
-      from-fs-file
-      from-cp-file)))
+  (let [resource (resource-from-cp-or-fs
+                  fs-prefix base-path resource-path
+                  :from-cp from-cp
+                  :from-fs from-fs)]
+    (when (some? resource)
+      (:file resource))))
 
 (defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
@@ -132,15 +139,18 @@
     (if (not (empty? paths))
       (do
         (let [path-to-work-with     (first paths)
-              resource-to-work-with (resource-from-cp-or-filesystem
+              resource-to-work-with (resource-from-cp-or-fs
                                      fs-prefix
-                                     (str base-path "/" path-to-work-with)
+                                     base-path
+                                     path-to-work-with
                                      :from-cp from-cp
                                      :from-fs from-fs)
-              result                (into result [path-to-work-with])]
+              result                (into result 
+                                          [resource-to-work-with])]
           (cond
             (nil? resource-to-work-with) []
-            (= :file (:resource-type resource-to-work-with)) (recur (drop 1 paths) result)
+            (is-file? resource-to-work-with)
+            (recur (drop 1 paths) result)
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
@@ -160,9 +170,10 @@
     (if (not (empty? paths))
       (do
         (let [path-to-work-with (first paths)
-              resource-to-work-with (resource-from-cp-or-filesystem
+              resource-to-work-with (resource-from-cp-or-fs
                                      fs-prefix
-                                     (str base-path "/" path-to-work-with)
+                                     base-path
+                                     path-to-work-with
                                      :from-cp from-cp
                                      :from-fs from-fs)
               result            (into result [path-to-work-with])]
@@ -201,9 +212,10 @@
                                              source-paths " not found")))
     (doseq [resource-path resource-paths]
       (let [target-file (io/file target-path resource-path)
-            source-file (io/file (uri-from-cp-or-filesystem 
-                                  fs-prefix 
-                                  (str base-path "/" resource-path)))]
+            source-file (io/file (file-from-cp-or-fs
+                                  fs-prefix
+                                  base-path
+                                  resource-path))]
         (io/make-parents target-file)
         (when (.isFile source-file)
           (io/copy source-file target-file)))))))
