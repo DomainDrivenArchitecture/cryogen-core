@@ -165,28 +165,12 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (loop [paths  paths
-         result []]
-    (if (not (empty? paths))
-      (do
-        (let [path-to-work-with (first paths)
-              resource-to-work-with (resource-from-cp-or-fs
-                                     fs-prefix
-                                     base-path
-                                     path-to-work-with
-                                     :from-cp from-cp
-                                     :from-fs from-fs)
-              result            (into result [path-to-work-with])]
-          (cond 
-            (nil? resource-to-work-with) []
-            (= :file (:resource-type resource-to-work-with)) (recur (drop 1 paths) result)
-            :else
-            (recur (into (drop 1 paths)
-                         (map #(str path-to-work-with "/" %) 
-                              (.list (:file resource-to-work-with))))
-                   result)
-            )))
-      result)))
+  (map #(:path %) 
+       (get-resources-recursive
+        fs-prefix base-path paths
+        :from-cp from-cp
+        :from-fs from-fs))
+  )
 
 ; TODO: Add files to keep
 (s/defn delete-resource-recursive!
