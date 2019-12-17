@@ -25,13 +25,13 @@
   (and (verify-file-exists path)
        (.isDirectory (io/file path))))
 
-(deftest test-file-from-cp-or-filesystem
+(deftest test-uri-from-cp-or-filesystem
   (is
-   (some? (sut/file-from-cp-or-filesystem
+   (some? (sut/uri-from-cp-or-filesystem
            "./test-resources/"
            "templates/themes/bootstrap4-test/js")))
   (is
-   (some? (sut/file-from-cp-or-filesystem
+   (some? (sut/uri-from-cp-or-filesystem
              "./not-existing-so-load-from-cp" ".gitkeep"))))
 
 (deftest test-get-resource-paths-recursive
@@ -80,16 +80,16 @@
        ["file.js"]
        (sut/filter-for-ignore-patterns #".*\.ignore" ["file.js" "file.ignore"]))))
 
-(deftest test-file-from-cp
+(deftest test-uri-from-cp
   (is 
    (sut/file-from-cp ".gitkeep")))
 
-(deftest test-file-from-cp-or-filesystem
+(deftest test-uri-from-cp-or-filesystem
   (is
-   (.exists (sut/file-from-cp-or-filesystem 
+   (.exists (sut/uri-from-cp-or-filesystem 
              "./test-resources/" "templates/themes/bootstrap4-test/js")))
   (is
-   (.exists (sut/file-from-cp-or-filesystem 
+   (.exists (sut/uri-from-cp-or-filesystem 
              "./" ".gitkeep"))))
 
 (deftest test-copy-resources-from-theme!  (is (do
