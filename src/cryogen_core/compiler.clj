@@ -40,15 +40,15 @@
   at the templates directory."
   [root mu ignored-files]
   (let [assets (cryogen-io/find-assets
-                 (cryogen-io/path "templates" (m/dir mu) root)
-                 (m/ext mu)
-                 ignored-files)]
+                (cryogen-io/path "templates" (m/dir mu) root)
+                (m/ext mu)
+                ignored-files)]
     (if (seq assets)
       assets
       (cryogen-io/find-assets
-        (cryogen-io/path "templates" root)
-        (m/ext mu)
-        ignored-files))))
+       (cryogen-io/path "templates" root)
+       (m/ext mu)
+       ignored-files))))
 
 (defn find-posts
   "Returns a list of markdown files representing posts under the post root."
@@ -102,39 +102,39 @@
   "Merges the page metadata and content maps, adding :toc if necessary."
   [file-name page-meta content]
   (merge
-    (update-in page-meta [:layout] #(str (name %) ".html"))
-    {:file-name file-name
-     :content   content
-     :toc       (if-let [toc (:toc page-meta)]
-                  (toc/generate-toc content :list-type toc))}))
+   (update-in page-meta [:layout] #(str (name %) ".html"))
+   {:file-name file-name
+    :content   content
+    :toc       (if-let [toc (:toc page-meta)]
+                 (toc/generate-toc content :list-type toc))}))
 
 (defn parse-page
   "Parses a page/post and returns a map of the content, uri, date etc."
   [page config markup]
   (let [{:keys [file-name page-meta content]} (page-content page config markup)]
     (merge
-      (merge-meta-and-content file-name page-meta content)
-      {:uri        (page-uri file-name :page-root-uri config)
-       :page-index (:page-index page-meta)
-       :klipse     (klipse/merge-configs (:klipse config) (:klipse page-meta))})))
+     (merge-meta-and-content file-name page-meta content)
+     {:uri        (page-uri file-name :page-root-uri config)
+      :page-index (:page-index page-meta)
+      :klipse     (klipse/merge-configs (:klipse config) (:klipse page-meta))})))
 
 (defn parse-post
   "Return a map with the given post's information."
   [page config markup]
   (let [{:keys [file-name page-meta content]} (page-content page config markup)]
     (merge
-      (merge-meta-and-content file-name page-meta content)
-      (let [date            (if (:date page-meta)
-                              (.parse (java.text.SimpleDateFormat. (:post-date-format config)) (:date page-meta))
-                              (parse-post-date file-name (:post-date-format config)))
-            archive-fmt     (java.text.SimpleDateFormat. (:archive-group-format config "yyyy MMMM") (Locale/getDefault))
-            formatted-group (.format archive-fmt date)]
-        {:date                    date
-         :formatted-archive-group formatted-group
-         :parsed-archive-group    (.parse archive-fmt formatted-group)
-         :uri                     (page-uri file-name :post-root-uri config)
-         :tags                    (set (:tags page-meta))
-         :klipse                  (klipse/merge-configs (:klipse config) (:klipse page-meta))}))))
+     (merge-meta-and-content file-name page-meta content)
+     (let [date            (if (:date page-meta)
+                             (.parse (java.text.SimpleDateFormat. (:post-date-format config)) (:date page-meta))
+                             (parse-post-date file-name (:post-date-format config)))
+           archive-fmt     (java.text.SimpleDateFormat. (:archive-group-format config "yyyy MMMM") (Locale/getDefault))
+           formatted-group (.format archive-fmt date)]
+       {:date                    date
+        :formatted-archive-group formatted-group
+        :parsed-archive-group    (.parse archive-fmt formatted-group)
+        :uri                     (page-uri file-name :post-root-uri config)
+        :tags                    (set (:tags page-meta))
+        :klipse                  (klipse/merge-configs (:klipse config) (:klipse page-meta))}))))
 
 (defn read-posts
   "Returns a sequence of maps representing the data from markdown files of posts.
@@ -142,11 +142,11 @@
   [config]
   (->> (m/markups)
        (mapcat
-         (fn [mu]
-           (->>
-             (find-posts config mu)
-             (pmap #(parse-post % config mu))
-             (remove #(= (:draft? %) true)))))
+        (fn [mu]
+          (->>
+           (find-posts config mu)
+           (pmap #(parse-post % config mu))
+           (remove #(= (:draft? %) true)))))
        (sort-by :date)
        reverse
        (drop-while #(and (:hide-future-posts? config) (.after (:date %) (java.util.Date.))))))
@@ -157,10 +157,10 @@
   [config]
   (->> (m/markups)
        (mapcat
-         (fn [mu]
-           (->>
-             (find-pages config mu)
-             (map #(parse-page % config mu)))))
+        (fn [mu]
+          (->>
+           (find-pages config mu)
+           (map #(parse-page % config mu)))))
        (sort-by :page-index)))
 
 (defn tag-post
@@ -212,8 +212,8 @@
   [pages]
   (map (fn [[prev target next]]
          (assoc target
-           :prev (if prev (dissoc prev :content) nil)
-           :next (if next (dissoc next :content) nil)))
+                :prev (if prev (dissoc prev :content) nil)
+                :next (if next (dissoc next :content) nil)))
        (partition 3 1 (flatten [nil pages nil]))))
 
 (defn group-pages
@@ -253,8 +253,7 @@
                                        :servlet-context (cryogen-io/path "/" blog-prefix "/")
                                        :page            page
                                        :uri             uri})))
-      (compile-pages params (:children page)))    
-    ))
+      (compile-pages params (:children page)))))
 
 (defn compile-posts
   "Compiles all the posts into html and spits them out into the public folder"
@@ -359,17 +358,17 @@
       (doseq [{:keys [index posts prev next]} previews
               :let [index-page? (= 1 index)]]
         (write-html
-          (if index-page? (page-uri "index.html" params)
-                          (page-uri (cryogen-io/path "p" (str index ".html")) params))
-          params
-          (render-file "/html/previews.html"
-                       (merge params
-                              {:active-page     "preview"
-                               :home            (when index-page? true)
-                               :servlet-context (cryogen-io/path "/" blog-prefix "/")
-                               :posts           posts
-                               :prev-uri        prev
-                               :next-uri        next})))))))
+         (if index-page? (page-uri "index.html" params)
+             (page-uri (cryogen-io/path "p" (str index ".html")) params))
+         params
+         (render-file "/html/previews.html"
+                      (merge params
+                             {:active-page     "preview"
+                              :home            (when index-page? true)
+                              :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                              :posts           posts
+                              :prev-uri        prev
+                              :next-uri        next})))))))
 
 (defn compile-index
   "Compiles the index page into html and spits it out into the public folder"
@@ -444,9 +443,9 @@
   (let [folders (->> (markup-entries post-root page-root)
                      (filter template-dir?))]
     (cryogen-io/copy-resources
-      (merge config
-             {:resources     folders
-              :ignored-files (map #(re-pattern-from-ext (m/ext %)) (m/markups))}))))
+     (merge config
+            {:resources     folders
+             :ignored-files (map #(re-pattern-from-ext (m/ext %)) (m/markups))}))))
 
 (defn read-config
   "Reads the config file"
@@ -469,12 +468,11 @@
                      (update-in [:post-date-format] (fnil str "yyyy-MM-dd"))
                      (update-in [:keep-files] (fnil seq []))
                      (update-in [:ignored-files] (fnil seq [#"^\.#.*" #".*\.swp$"]))
-                     (update-in [:page-model] (fnil keyword :flat))
-                     )]
+                     (update-in [:page-model] (fnil keyword :flat)))]
       (merge
-        config
-        {:page-root-uri (root-uri :page-root-uri config)
-         :post-root-uri (root-uri :post-root-uri config)}))
+       config
+       {:page-root-uri (root-uri :page-root-uri config)
+        :post-root-uri (root-uri :post-root-uri config)}))
     (catch Exception _
       (throw (IllegalArgumentException. "Failed to parse config.edn")))))
 
@@ -491,9 +489,9 @@
   "Generates all the html and copies over resources specified in the config"
   []
   (println (green "compiling assets..."))
-  (let [{:keys [^String site-url blog-prefix rss-name recent-posts 
+  (let [{:keys [^String site-url blog-prefix rss-name recent-posts
                 sass-dest keep-files ignored-files previews?
-                author-root-uri theme debug? page-model 
+                author-root-uri theme debug? page-model
                 page-root-uri resources]
          :as   config} (read-config)
         posts                                                                                                                                                               (map klipsify (add-prev-next (read-posts config)))
@@ -545,9 +543,11 @@
     (println (blue "copying resources"))
     ;(cryogen-io/copy-resources config)
     (cp-io/copy-resources-from-user! "resources/"
-                                      resources
-                                      (cp-io/path "resources/public" blog-prefix)
-                                      ignored-files)
+                                     resources
+                                     (cp-io/path "resources/public" blog-prefix)
+                                     ignored-files)
+    ;TODO: replace this
+    ; Nur directories kopieren
     (copy-resources-from-markup-folders config)
     (compile-pages params modelled-pages)
     (compile-posts params posts)
@@ -576,10 +576,10 @@
 
 (defn compile-assets-timed []
   (time
-    (try
-      (compile-assets)
-      (catch Exception e
-        (if (or (instance? IllegalArgumentException e)
-                (instance? clojure.lang.ExceptionInfo e))
-          (println (red "Error:") (yellow (.getMessage e)))
-          (write-exception e))))))
+   (try
+     (compile-assets)
+     (catch Exception e
+       (if (or (instance? IllegalArgumentException e)
+               (instance? clojure.lang.ExceptionInfo e))
+         (println (red "Error:") (yellow (.getMessage e)))
+         (write-exception e))))))
