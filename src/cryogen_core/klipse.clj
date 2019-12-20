@@ -62,9 +62,9 @@
   [html settings]
   (letfn [(tag [h clas]
             (enlive/sniptest h
-              [(keyword (str "code" clas))]
-              (fn [x]
-                (update-in x [:attrs :class] #(str % " nohighlight")))))]
+                             [(keyword (str "code" clas))]
+                             (fn [x]
+                               (update-in x [:attrs :class] #(str % " nohighlight")))))]
     (reduce tag html (eval-classes settings))))
 
 (def defaults

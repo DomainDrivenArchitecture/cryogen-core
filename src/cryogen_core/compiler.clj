@@ -494,37 +494,37 @@
                 author-root-uri theme debug? page-model
                 page-root-uri resources]
          :as   config} (read-config)
-        posts                                                                                                                                                               (map klipsify (add-prev-next (read-posts config)))
-        posts-by-tag                                                                                                                                                        (group-by-tags posts)
-        posts                                                                                                                                                               (tag-posts posts config)
-        latest-posts                                                                                                                                                        (->> posts (take recent-posts) vec)
-        klipsified-pages                                                                                                                                                    (map klipsify (read-pages config))
-        modelled-pages                                                                                                                                                      (cond
-                                                                                                                                                                              (= page-model :flat) klipsified-pages
-                                                                                                                                                                              (= page-model :hierarchic) (hierarchic/build-hierarchic-map page-root-uri klipsified-pages))
-        home-page                                                                                                                                                           (->> modelled-pages
-                                                                                                                                                                                 (filter #(boolean (:home? %)))
-                                                                                                                                                                                 (first))
-        other-pages                                                                                                                                                         (->> modelled-pages
-                                                                                                                                                                                 (remove #{home-page})
-                                                                                                                                                                                 (add-prev-next))
-        params                                                                                                                                                              (merge config
-                                                                                                                                                                                   {:today        (java.util.Date.)
-                                                                                                                                                                                    :title        (:site-title config)
-                                                                                                                                                                                    :active-page  "home"
-                                                                                                                                                                                    :tags         (map (partial tag-info config) (keys posts-by-tag))
-                                                                                                                                                                                    :latest-posts latest-posts
-                                                                                                                                                                                    :pages        other-pages
-                                                                                                                                                                                    :home-page    (if home-page
-                                                                                                                                                                                                    home-page
-                                                                                                                                                                                                    (assoc (first latest-posts) :layout "home.html"))
-                                                                                                                                                                                    :archives-uri (page-uri "archives.html" config)
-                                                                                                                                                                                    :index-uri    (page-uri "index.html" config)
-                                                                                                                                                                                    :tags-uri     (page-uri "tags.html" config)
-                                                                                                                                                                                    :rss-uri      (cryogen-io/path "/" blog-prefix rss-name)
-                                                                                                                                                                                    :site-url     (if (.endsWith site-url "/") (.substring site-url 0 (dec (count site-url))) site-url)})
-        file-resource-path                                                                                                                                                  (str "file:resources/templates/themes/" theme)
-        classpath-resource-path                                                                                                                                             (str "templates/themes/" theme)]
+        posts (map klipsify (add-prev-next (read-posts config)))
+        posts-by-tag  (group-by-tags posts)
+        posts (tag-posts posts config)
+        latest-posts (->> posts (take recent-posts) vec)
+        klipsified-pages  (map klipsify (read-pages config))
+        modelled-pages  (cond
+                          (= page-model :flat) klipsified-pages
+                          (= page-model :hierarchic) (hierarchic/build-hierarchic-map page-root-uri klipsified-pages))
+        home-page  (->> modelled-pages
+                        (filter #(boolean (:home? %)))
+                        (first))
+        other-pages  (->> modelled-pages
+                          (remove #{home-page})
+                          (add-prev-next))
+        params (merge config
+                      {:today        (java.util.Date.)
+                       :title        (:site-title config)
+                       :active-page  "home"
+                       :tags         (map (partial tag-info config) (keys posts-by-tag))
+                       :latest-posts latest-posts
+                       :pages        other-pages
+                       :home-page    (if home-page
+                                       home-page
+                                       (assoc (first latest-posts) :layout "home.html"))
+                       :archives-uri (page-uri "archives.html" config)
+                       :index-uri    (page-uri "index.html" config)
+                       :tags-uri     (page-uri "tags.html" config)
+                       :rss-uri      (cryogen-io/path "/" blog-prefix rss-name)
+                       :site-url     (if (.endsWith site-url "/") (.substring site-url 0 (dec (count site-url))) site-url)})
+        file-resource-path (str "file:resources/templates/themes/" theme)
+        classpath-resource-path (str "templates/themes/" theme)]
     (when debug?
       (println (blue "debug: page-model:"))
       (println "\t-->" (cyan page-model))
@@ -548,7 +548,12 @@
                                      ignored-files)
     ;TODO: replace this
     ; Nur directories kopieren
-    (copy-resources-from-markup-folders config)
+    ;(copy-resources-from-markup-folders config)
+    (cp-io/create-dirs-from-markup-folders! "resources/"
+                                            (:posts config)
+                                            (:pages config)
+                                            (cp-io/path "resources/public" blog-prefix)
+                                            ignored-files)
     (compile-pages params modelled-pages)
     (compile-posts params posts)
     (compile-tags params posts-by-tag)

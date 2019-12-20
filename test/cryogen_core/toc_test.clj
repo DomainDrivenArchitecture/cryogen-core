@@ -27,9 +27,9 @@
 ; Test that the make-toc-entry ignores invalid input
 (deftest test-make-toc-entry
   (is (nil?
-        (make-toc-entry nil "Text")))
+       (make-toc-entry nil "Text")))
   (is (nil?
-        (make-toc-entry "anchor" nil)))
+       (make-toc-entry "anchor" nil)))
   (is (= [:li [:a {:href "#anchor"} "Text"]]
          (make-toc-entry "anchor" "Text"))))
 
@@ -45,20 +45,20 @@
         no-headers      [:div [:p "This is not a header"]]
 
         closing-header-larger-than-opening-1
-                        [:div [:h2 [:a {:name "starting_low"}]
-                               "Starting Low"]
-                         [:h1 [:a {:name "finishing_high"}]
-                          "Finishing High"]]
+        [:div [:h2 [:a {:name "starting_low"}]
+               "Starting Low"]
+         [:h1 [:a {:name "finishing_high"}]
+          "Finishing High"]]
 
         closing-header-larger-than-opening-2
-                        [:div [:h2 [:a {:name "starting_low"}]
-                               "Starting Low"]
-                         [:h4 [:a {:name "jumping_in"}]
-                          "Jumping Right In"]
-                         [:h3 [:a {:name "pulling_back"}]
-                          "But then pull back"]
-                         [:h2 [:a {:name "to_the_top"}]
-                          "To the top"]]]
+        [:div [:h2 [:a {:name "starting_low"}]
+               "Starting Low"]
+         [:h4 [:a {:name "jumping_in"}]
+          "Jumping Right In"]
+         [:h3 [:a {:name "pulling_back"}]
+          "But then pull back"]
+         [:h2 [:a {:name "to_the_top"}]
+          "To the top"]]]
     (is (= [:ol.content (seq [[:li [:a {:href "#test"} "Test"]]])]
            (-> simplest-header
                (parse-to-headings)
@@ -89,7 +89,6 @@
         (s/join "" ["Inner headers can be more indented, "
                     "but outer headers cannot be less indented "
                     "than the original header."]))))
-
 
 (deftest test-generate-toc
   (let [htmlString "<div><h2><a name=\"test\"></a>Test</h2></div>"]

@@ -12,13 +12,13 @@
   headings."
   [content]
   (reduce
-    (fn [headings {:keys [tag attrs content] :as elm}]
-      (if (some #{tag} _h)
-        (conj headings elm)
-        (if-let [more-headings (get-headings content)]
-          (into headings more-headings)
-          headings)))
-    [] content))
+   (fn [headings {:keys [tag attrs content] :as elm}]
+     (if (some #{tag} _h)
+       (conj headings elm)
+       (if-let [more-headings (get-headings content)]
+         (into headings more-headings)
+         headings)))
+   [] content))
 
 (defn- zip-toc-tree-to-insertion-point
   "Given a toc-tree zipper and a header level, navigate
@@ -46,24 +46,23 @@
   and return it."
   [headings]
   (loop [zp (z/zipper
-              map?
-              :children
-              (fn [node children] (assoc node :children (apply vector children)))
-              {:value :root :children []})
+             map?
+             :children
+             (fn [node children] (assoc node :children (apply vector children)))
+             {:value :root :children []})
          items headings]
     (if-let [{tag :tag {id :id} :attrs [{{name :name} :attrs} title :as htext] :content} (first items)]
       (let [anchor (or id name)]
         (if (nil? anchor)
           (recur zp (rest items))
           (recur (insert-toc-tree-entry zp
-                   {:tag tag
-                    :anchor anchor
-                    :text (or
-                            (if (string? title) title (-> title :content first))
-                            (first htext))})
+                                        {:tag tag
+                                         :anchor anchor
+                                         :text (or
+                                                (if (string? title) title (-> title :content first))
+                                                (first htext))})
                  (rest items))))
       (z/root zp))))
-
 
 (defn- make-toc-entry
   "Given an anchor link and some text, construct a toc entry
@@ -72,7 +71,6 @@
   [anchor text]
   (when (and anchor text)
     [:li [:a {:href (str "#" anchor)} text]]))
-
 
 (defn- build-toc
   "Given the root of a toc tree and either :ol or :ul,
@@ -86,9 +84,9 @@
     ; Create hiccup sequence of :ol/:ul tag and sequence of :li tags
     (if (seq children)
       (let [sublist [first-list-open (map build-toc children
-                                       (repeat list-open)
-                                       (repeat :outer-list?)
-                                       (repeat false))]]
+                                          (repeat list-open)
+                                          (repeat :outer-list?)
+                                          (repeat false))]]
         (if-let [li li] ; The root element has nothing so ignore it
           (seq [li sublist]) ; Use seq to lazily concat the li with the sublists
           sublist))
@@ -105,8 +103,8 @@
   [html & {:keys [list-type] :or {list-type :ol}}]
   (let [list-type (if (true? list-type) :ol list-type)]
     (-> html
-    (enlive/html-snippet)
-    (get-headings)
-    (build-toc-tree)
-    (build-toc list-type)
-    (hiccup/html))))
+        (enlive/html-snippet)
+        (get-headings)
+        (build-toc-tree)
+        (build-toc list-type)
+        (hiccup/html))))

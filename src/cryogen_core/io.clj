@@ -6,7 +6,7 @@
 (def public "resources/public")
 
 (defn path
-  "Creates path from given parts, ignore empty elements" 
+  "Creates path from given parts, ignore empty elements"
   [& path-parts]
   (->> path-parts
        (remove s/blank?)
@@ -88,7 +88,7 @@
   [config]
   (let [theme-path (str "themes/" (:theme config))]
     (copy-resources
-      (merge config
-             {:resources [(str theme-path "/css")
-                          (str theme-path "/js")
-                          (str theme-path "/html/404.html")]}))))
+     (merge config
+            {:resources [(str theme-path "/css")
+                         (str theme-path "/js")
+                         (str theme-path "/html/404.html")]}))))

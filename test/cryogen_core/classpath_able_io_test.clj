@@ -37,15 +37,15 @@
 
 (deftest test-resource-from-cp-or-fs
   (is
-   (.exists 
-    (:file 
+   (.exists
+    (:file
      (sut/resource-from-cp-or-fs
       "./test-resources/"
       "templates/themes/bootstrap4-test"
       "js"))))
   (is
-   (.exists 
-    (:file 
+   (.exists
+    (:file
      (sut/resource-from-cp-or-fs
       "./" "" ".gitkeep"))))
   (is
@@ -60,7 +60,7 @@
        {:path          "js/subdir"
         :source-type   :classpath
         :resource-type :dir}
-       (filter-object 
+       (filter-object
         (sut/resource-from-cp-or-fs
          "./not-existing-so-load-from-cp"
          "templates/themes/bootstrap4-test"
@@ -78,53 +78,72 @@
             (sut/get-resources-recursive
              "" "templates/themes/bootstrap4-test" ["js/dummy.js"]))))
   (is (=
+       []
+       (sut/get-resources-recursive
+        "" "templates/themes/bootstrap4-test" ["js/dummy.js"] :from-cp false)))
+  (is (=
        ["js/subdir"
-        "js/subdir/test.js"
-        "js/subdir/subdummy.js"]
-       (map #(:path %)
-            (sut/get-resources-recursive
-             "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
-
-(deftest test-get-resource-paths-recursive
-  (is (=
-       []
-       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
-  (is (=
-       ["js/dummy.js"]
-       (sut/get-resource-paths-recursive 
-        "" "templates/themes/bootstrap4-test" ["js/dummy.js"])))
-  (is (=
-       []
-       (sut/get-resource-paths-recursive 
-        "" "templates/themes/bootstrap4-test" ["js/dummy.js"]
-        :from-cp false)))
-  (is (=
-       ["js/subdir" 
-        "js/subdir/test.js" 
-        "js/subdir/subdummy.js"]
-       (sut/get-resource-paths-recursive 
-        "" "templates/themes/bootstrap4-test" ["js/subdir"])))
+        "js/subdir/subdummy.js"
+        "js/subdir/test.js"]
+       (sort (map :path
+                  (sut/get-resources-recursive
+                   "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
   (is (=
        ["."
         "./css"
         "./css/dummy.css"
-        "./js"
-        "./js/subdir"
-        "./js/subdir/test.js"
-        "./js/subdir/subdummy.js"
-        "./js/dummy.js"
         "./html"
         "./html/403.html"
-        "./html/404.html"]
-       (sut/get-resource-paths-recursive "" "templates/themes/bootstrap4-test" ["."])))
-  )
+        "./html/404.html"
+        "./js"
+        "./js/dummy.js"
+        "./js/subdir"
+        "./js/subdir/subdummy.js"
+        "./js/subdir/test.js"]
+       (sort (map :path
+                  (sut/get-resources-recursive
+                   "" "templates/themes/bootstrap4-test" ["."]))))))
 
-(deftest test-delete-resource-recursive
+(deftest test-get-distinct-markup-dirs
+  (is (=
+       ["test_pages"
+        "test_pages/home"
+        "test_posts"
+        "test_posts/home"]
+       (sort (map :path
+                  (sut/get-distinct-markup-dirs
+                   "not-existing-get-from-cp"
+                   "test_posts" "test_pages"
+                   ""))))))
+
+(deftest test-distinct-resources-by-path
+  (is (= [{:path "pages/test"}
+          {:path "pages/test1"}
+          {:path "pages/test2"}]
+         (sut/distinct-resources-by-path [{:path "pages/test"}
+                                          {:path "pages/test1"}
+                                          {:path "pages/test2"}
+                                          {:path "pages/test1"}]))))
+
+(deftest test-create-dirs-from-markup-folders!
+  (is (do
+        (sut/delete-resource-recursive! (str target "2"))
+        (sut/create-dirs-from-markup-folders!
+         "not-existing-get-from-cp" "test_posts" "test_pages"
+         (str target "2") "")
+        (and (verify-dir-exists
+              (str (str target "2") "/test_pages"))
+             (verify-dir-exists
+              (str (str target "2") "/test_posts"))
+             (verify-dir-exists
+              (str (str target "2") "/test_pages/home"))))))
+
+(deftest test-delete-resource-recursive!
   (is
    (do
-     (.mkdir (io/file (str "target/tmp" target)))
-     (sut/delete-resource-recursive! (str "target/tmp" target))
-     (not (verify-dir-exists (str "target/tmp" target))))))
+     (.mkdir (io/file target))
+     (sut/delete-resource-recursive! target)
+     (not (verify-dir-exists target)))))
 
 (deftest test-filter-for-ignore-patterns
   (is (=
@@ -132,18 +151,17 @@
        (sut/filter-for-ignore-patterns #".*\.ignore" ["file.js" "file.ignore"]))))
 
 (deftest test-copy-resources-from-theme!  (is (do
-        (sut/delete-resource-recursive! (str "target/tmp" target))
-        (sut/copy-resources-from-theme! "./" theme target "")
-        (and (verify-dir-exists
-              (str target "/js"))
-             (verify-file-exists
-              (str target "/js/dummy.js"))
-             (verify-dir-exists
-              (str target "/js/subdir"))
-             (verify-file-exists
-              (str target "/js/subdir/subdummy.js"))
-             (verify-file-exists
-              (str target "/css/dummy.css"))
-             (verify-file-exists
-              (str target "/404.html"))
-             ))))
+                                                (sut/delete-resource-recursive! target)
+                                                (sut/copy-resources-from-theme! "./" theme target "")
+                                                (and (verify-dir-exists
+                                                      (str target "/js"))
+                                                     (verify-file-exists
+                                                      (str target "/js/dummy.js"))
+                                                     (verify-dir-exists
+                                                      (str target "/js/subdir"))
+                                                     (verify-file-exists
+                                                      (str target "/js/subdir/subdummy.js"))
+                                                     (verify-file-exists
+                                                      (str target "/css/dummy.css"))
+                                                     (verify-file-exists
+                                                      (str target "/404.html"))))))

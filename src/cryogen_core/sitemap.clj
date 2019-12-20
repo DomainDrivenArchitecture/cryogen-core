@@ -16,13 +16,13 @@
 (defn generate [site-url ignored-files]
   (with-out-str
     (emit
-      {:tag :urlset
-       :attrs {:xmlns "http://www.sitemaps.org/schemas/sitemap/0.9"}
-       :content
-       (for [^java.io.File f (cryogen-io/find-assets "public" ".html" ignored-files)]
-         {:tag :url
-          :content
-          [{:tag :loc
-            :content [(str site-url (loc f))]}
-           {:tag :lastmod
-            :content [(-> f (.lastModified) (Date.) format-date)]}]})})))
+     {:tag :urlset
+      :attrs {:xmlns "http://www.sitemaps.org/schemas/sitemap/0.9"}
+      :content
+      (for [^java.io.File f (cryogen-io/find-assets "public" ".html" ignored-files)]
+        {:tag :url
+         :content
+         [{:tag :loc
+           :content [(str site-url (loc f))]}
+          {:tag :lastmod
+           :content [(-> f (.lastModified) (Date.) format-date)]}]})})))

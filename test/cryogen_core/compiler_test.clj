@@ -55,21 +55,21 @@ and more content.
   (let [mu (markdown)]
     (testing "Finds no files"
       (is (empty? (check-for-posts mu))
-      (is (empty? (check-for-pages mu))))
+          (is (empty? (check-for-pages mu))))
 
-    (let [dir->file
-          [[check-for-posts "resources/templates/md/posts" "post.md"]
-           [check-for-posts "resources/templates/posts" "post.md"]
-           [check-for-pages "resources/templates/md/pages" "page.md"]
-           [check-for-pages "resources/templates/pages" "page.md"]]]
-      (doseq [[check-fn dir file] dir->file]
-        (testing (str "Finds files in " dir)
-          (create-entry dir file)
-          (let [entries (check-fn mu)]
-            (is (= 1 (count entries)))
-            (is (= (.getAbsolutePath (File. (str dir File/separator file)))
-                   (.getAbsolutePath (first entries)))))
-          (reset-resources)))))))
+      (let [dir->file
+            [[check-for-posts "resources/templates/md/posts" "post.md"]
+             [check-for-posts "resources/templates/posts" "post.md"]
+             [check-for-pages "resources/templates/md/pages" "page.md"]
+             [check-for-pages "resources/templates/pages" "page.md"]]]
+        (doseq [[check-fn dir file] dir->file]
+          (testing (str "Finds files in " dir)
+            (create-entry dir file)
+            (let [entries (check-fn mu)]
+              (is (= 1 (count entries)))
+              (is (= (.getAbsolutePath (File. (str dir File/separator file)))
+                     (.getAbsolutePath (first entries)))))
+            (reset-resources)))))))
 
 (defmacro with-markup [mu & body]
   `(do
@@ -92,9 +92,9 @@ and more content.
                     (str "entry" (m/ext mu)))))
   (with-markup mu
     (copy-resources-from-markup-folders
-      {:post-root posts-root
-       :page-root pages-root
-       :blog-prefix "/blog"}))
+     {:post-root posts-root
+      :page-root pages-root
+      :blog-prefix "/blog"}))
   (doseq [dir dirs]
     (is (.isDirectory (File. (str "resources/public/blog/" dir))))))
 
@@ -102,9 +102,9 @@ and more content.
   (reset-resources)
   (testing "No pages or posts nothing to copy"
     (copy-resources-from-markup-folders
-      {:post-root "pages"
-       :page-root "posts"
-       :blog-prefix "/blog"})
+     {:post-root "pages"
+      :page-root "posts"
+      :blog-prefix "/blog"})
     (is (not (.isDirectory (File. (str "resources/public/blog/pages")))))
     (is (not (.isDirectory (File. (str "resources/public/blog/posts"))))))
 

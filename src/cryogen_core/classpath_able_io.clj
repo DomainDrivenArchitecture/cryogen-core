@@ -23,12 +23,12 @@
 
 (def File s/Any) ; java.io.File
 
-(def Resource 
+(def Resource
   {:path          Path
    :uri           Uri
-   :file          File 
+   :file          File
    :source-type   SourceType
-   :resource-type ResourceType })
+   :resource-type ResourceType})
 
 (def public "resources/public")
 
@@ -62,7 +62,7 @@
     :uri           (.toURI file)
     :file          file
     :source-type   source-type
-    :resource-type (cond 
+    :resource-type (cond
                      (.isDirectory file) :dir
                      (.isFile file) :file
                      :else :unknown)}))
@@ -106,7 +106,7 @@
         file-from-cp (if from-cp
                        (file-from-cp full-path)
                        nil)]
-    (cond 
+    (cond
       (some? file-from-fs)
       (create-resource resource-path file-from-fs :filesystem)
       (some? file-from-cp)
@@ -145,7 +145,7 @@
                                      path-to-work-with
                                      :from-cp from-cp
                                      :from-fs from-fs)
-              result                (into result 
+              result                (into result
                                           [resource-to-work-with])]
           (cond
             (nil? resource-to-work-with) []
@@ -165,18 +165,17 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (map #(:path %) 
+  (map #(:path %)
        (get-resources-recursive
         fs-prefix base-path paths
         :from-cp from-cp
-        :from-fs from-fs))
-  )
+        :from-fs from-fs)))
 
 ; TODO: Add files to keep
 (s/defn delete-resource-recursive!
   [path :- s/Str]
   (let [resource-paths
-        (reverse (get-resource-paths-recursive 
+        (reverse (get-resource-paths-recursive
                   "" path [""] :from-cp false))]
     (doseq [resource-path resource-paths]
       (io/delete-file (str path resource-path)))))
@@ -191,18 +190,18 @@
    ]
   (let [resource-paths
         (get-resource-paths-recursive fs-prefix base-path source-paths)]
-     (if (empty? resource-paths)
-      (throw (IllegalArgumentException. (str "resource " resource-paths ", " 
+    (if (empty? resource-paths)
+      (throw (IllegalArgumentException. (str "resource " resource-paths ", "
                                              source-paths " not found")))
-    (doseq [resource-path resource-paths]
-      (let [target-file (io/file target-path resource-path)
-            source-file (io/file (file-from-cp-or-fs
-                                  fs-prefix
-                                  base-path
-                                  resource-path))]
-        (io/make-parents target-file)
-        (when (.isFile source-file)
-          (io/copy source-file target-file)))))))
+      (doseq [resource-path resource-paths]
+        (let [target-file (io/file target-path resource-path)
+              source-file (io/file (file-from-cp-or-fs
+                                    fs-prefix
+                                    base-path
+                                    resource-path))]
+          (io/make-parents target-file)
+          (when (.isFile source-file)
+            (io/copy source-file target-file)))))))
 
 (defn copy-resources-from-user!
   [fs-prefix resources target-path ignore-patterns]
@@ -210,10 +209,39 @@
     (copy-resources! fs-prefix resource-path resources
                      target-path ignore-patterns)))
 
-(defn copy-resources-from-theme!  
+(defn copy-resources-from-theme!
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (copy-resources! fs-prefix theme-path ["css" "js"] 
+    (copy-resources! fs-prefix theme-path ["css" "js"]
                      target-path ignore-patterns)
     (copy-resources! fs-prefix (str theme-path "/html") ["404.html"]
                      target-path ignore-patterns)))
+
+(defn distinct-resources-by-path
+  [resources]
+  (loop [paths (set (map :path resources))
+         resources resources
+         acc []]
+    (cond (empty? resources) acc
+          (contains? paths (:path (first resources))) (recur (disj paths (:path (first resources)))
+                                                             (rest resources)
+                                                             (conj acc (first resources)))
+          :else (recur paths (rest resources) acc))))
+
+(defn get-distinct-markup-dirs
+  [fs-prefix posts pages ignore-patterns]
+  (let [base-path "templates/md"
+        resources (get-resources-recursive
+                   fs-prefix base-path [pages posts])
+        filtered-resources (->> (filter #(= (:resource-type %) :dir) resources)
+                                (distinct-resources-by-path))]
+    filtered-resources))
+
+(defn create-dirs-from-markup-folders!
+  "Copy resources from markup folders. This does not copy the markup entries."
+  [fs-prefix posts pages target-path ignore-patterns]
+  (let [resources (get-distinct-markup-dirs fs-prefix posts pages
+                                            ignore-patterns)]
+    (doseq [resource resources]
+      (io/make-parents (io/file (str target-path "/" (:path resource))))
+      (.mkdir (io/file (str target-path "/" (:path resource)))))))
