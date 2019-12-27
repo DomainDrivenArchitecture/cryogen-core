@@ -493,30 +493,31 @@
                 sass-dest keep-files ignored-files previews?
                 author-root-uri theme debug? page-model
                 page-root-uri resources]
-         :as   config} (read-config)
-        posts 
+         :as   config} 
+        (read-config)
+        posts
         (map klipsify (add-prev-next (read-posts config)))
         posts-by-tag
         (group-by-tags posts)
-        posts     
+        posts                                                                                                                                                                         
         (tag-posts posts config)
-        latest-posts      
+        latest-posts
         (->> posts (take recent-posts) vec)
-        klipsified-pages  
+        klipsified-pages
         (map klipsify (read-pages config))
-        modelled-pages   
+        modelled-pages
         (cond
           (= page-model :flat) klipsified-pages
           (= page-model :hierarchic) (hierarchic/build-hierarchic-map page-root-uri klipsified-pages))
-        home-page          
+        home-page
         (->> modelled-pages
              (filter #(boolean (:home? %)))
              (first))
-        other-pages  
+        other-pages
         (->> modelled-pages
              (remove #{home-page})
              (add-prev-next))
-        params   
+        params
         (merge config
                {:today        (java.util.Date.)
                 :title        (:site-title config)
@@ -532,18 +533,29 @@
                 :tags-uri     (page-uri "tags.html" config)
                 :rss-uri      (cryogen-io/path "/" blog-prefix rss-name)
                 :site-url     (if (.endsWith site-url "/") (.substring site-url 0 (dec (count site-url))) site-url)})
-        file-resource-path 
-        (str "file:resources/templates/themes/" theme)
-        classpath-resource-path 
-        (str "templates/themes/" theme)]
+        file-resource-prefix 
+        "resources/"
+        resource-prefix
+        (str "templates/themes/" theme)
+        file-uri
+        (:uri
+         (cp-io/resource-from-cp-or-fs
+          file-resource-prefix resource-prefix ""
+          :from-cp false))
+        cp-uri
+        (:uri
+         (cp-io/resource-from-cp-or-fs
+          file-resource-prefix resource-prefix ""
+          :from-fs false))]
     (when debug?
       (println (blue "debug: page-model:"))
       (println "\t-->" (cyan page-model))
+      (println (blue "debug: prefixes:"))
+      (println "\t-->" (cyan file-uri))
       (println (blue "debug: home-page:"))
       (println "\t-->" (cyan (-> params :home-page))))
-    ;; TODO: replace by file-resource-path or classpath-resource-path
-    (println file-resource-path)
-    (set-custom-resource-path! file-resource-path)
+    ;; TODO: inline in compile* fns
+    (set-custom-resource-path! (.toString file-uri))
     ;(cryogen-io/wipe-public-folder keep-files)
     (cp-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
     (println (blue "copying theme resources"))
@@ -558,8 +570,6 @@
                                      resources
                                      (cp-io/path "resources/public" blog-prefix)
                                      ignored-files)
-    ;TODO: replace this
-    ; Nur directories kopieren
     ;(copy-resources-from-markup-folders config)
     (cp-io/create-dirs-from-markup-folders! "resources/"
                                             (:posts config)
@@ -568,6 +578,7 @@
                                             ignored-files)
     ; TODO: Hier weitermachen
     (compile-pages params modelled-pages)
+    ;(compile-pages params modelled-pages file-uri cp-uri)
     (compile-posts params posts)
     (compile-tags params posts-by-tag)
     (compile-tags-page params)
