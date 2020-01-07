@@ -18,7 +18,9 @@
             [clojure.inspector :as inspector]
             [cryogen-core.toc :as toc]
             [cryogen-core.hierarchic :as hierarchic])
-  (:import java.util.Locale))
+  (:import [java.util Locale]
+           [java.net URI]
+           [java.io File]))
 
 (cache-off!)
 
@@ -540,21 +542,29 @@
                        :rss-uri      (cryogen-io/path "/" blog-prefix rss-name)
                        :site-url     (if (.endsWith site-url "/") (.substring site-url 0 (dec (count site-url))) site-url)})
         file-resource-prefix "resources/"
+        file-target-prefix "target/"
         resource-prefix (str "templates/themes/" theme)
-        file-uri  (:uri
-                   (cp-io/resource-from-cp-or-fs
-                    file-resource-prefix resource-prefix ""
-                    :from-cp false))]
+        resource-file-uri (:uri
+                           (cp-io/resource-from-cp-or-fs
+                            file-resource-prefix resource-prefix ""
+                            :from-cp false))
+        target-file-uri  (URI. (str (.toURI (.getParentFile (.getAbsoluteFile (File. "."))))
+                                    file-target-prefix resource-prefix "/"))]
     (when debug?
       (println (blue "debug: page-model:"))
       (println "\t-->" (cyan page-model))
       (println (blue "debug: prefixes:"))
-      (println "\t-->" (cyan file-uri))
+      (println "\t-->" (cyan resource-file-uri))
+      (println "\t-->" (cyan target-file-uri))
       (println (blue "debug: home-page:"))
       (println "\t-->" (cyan (-> params :home-page))))
-    ;; TODO: 1. Copy theme/html from fs & cp -> target/theme/html
-    ;; TODO: 2. use target/theme as custome-resource-path
-    (set-custom-resource-path! (.toString file-uri))
+    (new-io/delete-resource-recursive! (.getPath target-file-uri))
+    (new-io/copy-html-from-theme! "resources/"
+                                  theme
+                                  (.getPath target-file-uri)
+                                  ignored-files)
+    ;(set-custom-resource-path! (.toString resource-file-uri))
+    (set-custom-resource-path! (.toString target-file-uri))
     ;(cryogen-io/wipe-public-folder keep-files)
     (new-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
     (println (blue "copying theme resources"))

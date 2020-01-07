@@ -27,6 +27,12 @@
     (cp-io/copy-resources! fs-prefix (str theme-path "/html") ["404.html"]
                      target-path ignore-patterns)))
 
+(defn copy-html-from-theme!
+  [fs-prefix theme target-path ignore-patterns]
+  (let [theme-path (str "templates/themes/" theme)]
+    (cp-io/copy-resources! fs-prefix theme-path ["html"]
+                           target-path ignore-patterns)))
+
 (defn get-distinct-markup-dirs
   [fs-prefix posts pages ignore-patterns]
   (let [base-path "templates/md"
