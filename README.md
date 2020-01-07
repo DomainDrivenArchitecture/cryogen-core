@@ -1,7 +1,10 @@
-# Fork of cryogen-core
+# cryogen-core
+[![Clojars Project](https://img.shields.io/clojars/v/dda/cryogen-core.svg)](https://clojars.org/dda/cryogen-core)
+[![Build Status](https://travis-ci.org/DomainDrivenArchitecture/cryogen-core.svg?branch=master)](https://travis-ci.org/DomainDrivenArchitecture/cryogen-core)
 
-[![Dependency Status](https://www.versioneye.com/user/projects/54cb0156fb6eba75440000fd/badge.svg?style=flat)](https://www.versioneye.com/user/projects/54cb0156fb6eba75440000fd)
+[<img src="https://meissa-gmbh.de/img/community/Mastodon_Logotype.svg" width=20 alt="team@social.meissa-gmbh.de"> team@social.meissa-gmbh.de](https://social.meissa-gmbh.de/@team) | [Website & Blog](https://domaindrivenarchitecture.org)
 
+## fork of
 [Cryogen](https://github.com/lacarmen/cryogen)'s compiler.
 
 ## Leiningen
@@ -9,7 +12,7 @@
 
 ## License
 
-Copyright © 2014 Carmen La
+Copyright © 2014 Carmen La, 2017, 2020 meissa
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
