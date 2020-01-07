@@ -7,6 +7,7 @@
             [selmer.parser :refer [cache-off! render-file]]
             [selmer.util :refer [set-custom-resource-path!]]
             [text-decoration.core :refer :all]
+            ; TODO: remove all cryogen-io occurance
             [cryogen-core.io :as cryogen-io]
             [cryogen-core.new-io :as new-io]
             [cryogen-core.classpath-able-io :as cp-io]
@@ -585,7 +586,6 @@
                                              (:pages config)
                                              (cp-io/path "resources/public" blog-prefix)
                                              ignored-files)
-    ; TODO: Hier weitermachen
     (compile-pages params modelled-pages)
     (compile-posts params posts)
     (compile-tags params posts-by-tag)
