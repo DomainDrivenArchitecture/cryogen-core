@@ -11,7 +11,9 @@
    [clojure.java.io :as io]
    [cryogen-core.classpath-able-io :as cp-io]))
 
-(defn copy-resources-from-user!
+(def delete-resource-recursive! cp-io/delete-resource-recursive!)
+
+(defn copy-resources-from-templates!
   [fs-prefix resources target-path ignore-patterns]
   (let [resource-path "templates"]
     (cp-io/copy-resources! fs-prefix resource-path resources

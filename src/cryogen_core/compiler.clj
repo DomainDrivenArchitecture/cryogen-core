@@ -9,6 +9,7 @@
             [text-decoration.core :refer :all]
             [cryogen-core.io :as cryogen-io]
             [cryogen-core.new-io :as new-io]
+            [cryogen-core.classpath-able-io :as cp-io]
             [cryogen-core.klipse :as klipse]
             [cryogen-core.markup :as m]
             [cryogen-core.rss :as rss]
@@ -541,7 +542,7 @@
         file-resource-prefix "resources/"
         resource-prefix (str "templates/themes/" theme)
         file-uri  (:uri
-                   (new-io/resource-from-cp-or-fs
+                   (cp-io/resource-from-cp-or-fs
                     file-resource-prefix resource-prefix ""
                     :from-cp false))]
     (when debug?
@@ -555,24 +556,24 @@
     ;; TODO: 2. use target/theme as custome-resource-path
     (set-custom-resource-path! (.toString file-uri))
     ;(cryogen-io/wipe-public-folder keep-files)
-    (new-io/delete-resource-recursive! (new-io/path "resources/public" blog-prefix))
+    (new-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
     (println (blue "copying theme resources"))
     ;(cryogen-io/copy-resources-from-theme config)
     (new-io/copy-resources-from-theme! "resources/"
                                        theme
-                                       (new-io/path "resources/public" blog-prefix)
+                                       (cp-io/path "resources/public" blog-prefix)
                                        ignored-files)
     (println (blue "copying resources"))
     ;(cryogen-io/copy-resources config)
-    (new-io/copy-resources-from-user! "resources/"
+    (new-io/copy-resources-from-templates! "resources/"
                                       resources
-                                      (new-io/path "resources/public" blog-prefix)
+                                      (cp-io/path "resources/public" blog-prefix)
                                       ignored-files)
     ;(copy-resources-from-markup-folders config)
     (new-io/create-dirs-from-markup-folders! "resources/"
                                              (:posts config)
                                              (:pages config)
-                                             (new-io/path "resources/public" blog-prefix)
+                                             (cp-io/path "resources/public" blog-prefix)
                                              ignored-files)
     ; TODO: Hier weitermachen
     (compile-pages params modelled-pages)
