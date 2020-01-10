@@ -11,7 +11,9 @@
 [Cryogen](https://github.com/lacarmen/cryogen)'s compiler.
 
 Additional Features:
-*
+
+* Navmap feature for nested navigation (see: https://github.com/cryogen-project/cryogen-core/pull/81)
+* Theme default can be read from classpath, filesystem overwrites.
 
 ## License
 
