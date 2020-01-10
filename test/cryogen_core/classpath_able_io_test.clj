@@ -19,6 +19,12 @@
 
 (def target "target/tmp")
 
+; TODO: Fix this test!
+(deftest test-file-from-cp
+  (is
+   (sut/file-from-cp
+    "dummy")))
+
 (deftest test-resource-from-cp-or-fs
   (is
    (.exists

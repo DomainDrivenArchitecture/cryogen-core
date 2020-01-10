@@ -1,0 +1,21 @@
+TODO: to solve reading from jars:
+ 1. create fs
+
+
+(FileSystems/newFileSystem
+   (java.net.URI.
+    "jar:file:/home/jem/.m2/repository/dda/dummy/0.1.0-SNAPSHOT/dummy-0.1.0-SNAPSHOT.jar")
+  {})
+
+
+ 2. be able to use it
+ 
+(Files/exists
+  (.getPath
+    (FileSystems/getFileSystem
+    (java.net.URI.
+      "jar:file:/home/jem/.m2/repository/dda/dummy/0.1.0-SNAPSHOT/dummy-0.1.0-SNAPSHOT.jar"))
+    "dummy"
+    (into-array String '()))
+    (into-array java.nio.file.LinkOption {}))
+

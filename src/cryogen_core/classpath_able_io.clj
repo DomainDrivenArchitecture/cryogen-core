@@ -9,7 +9,8 @@
 (ns cryogen-core.classpath-able-io
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
-            [schema.core :as s]))
+            [schema.core :as s])
+   (:import [java.nio.file FileSystems Paths Files]))
 
 (def SourceType (s/enum :classpath :filesystem))
 
@@ -73,12 +74,12 @@
 
 (s/defn file-from-cp ;  :- File
   [resource-path :- Path]
-  (let [file-from-cp (io/file (io/resource resource-path))]
-    (try
+  (try
+    (let [file-from-cp (io/file (io/resource resource-path))]
       (when (.exists file-from-cp)
-        file-from-cp)
-      (catch Exception e
-        nil))))
+        file-from-cp))
+    (catch Exception e
+      nil)))
 
 (s/defn file-from-fs ;  :- File
   [fs-prefix :- Prefix

@@ -24,8 +24,9 @@
                    :resource-paths ["test-resources"]
                    :dependencies []
                    :leiningen/reply
-                   {:dependencies [[org.slf4j/jcl-over-slf4j "1.8.0-beta0"]]
+                   {:dependencies [[org.slf4j/jcl-over-slf4j "1.8.0-beta0"]
+                                   [dda/dummy "0.1.0-SNAPSHOT"]]
                     :exclusions [commons-logging]}}
              :test {:source-paths ["test"]
                     :resource-paths ["test-resources"]
-                    :dependencies []}})
+                    :dependencies [[dda/dummy "0.1.0-SNAPSHOT"]]}})
