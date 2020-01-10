@@ -3,7 +3,7 @@
   :url "https://github.com/cryogen-project/cryogen-core"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.10.0"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
                  [camel-snake-kebab "0.4.1"]
                  [cheshire "5.9.0"]
                  [clj-rss "0.2.5"]
