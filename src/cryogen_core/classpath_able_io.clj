@@ -10,7 +10,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s])
-   (:import [java.nio.file FileSystems Paths Files]))
+   (:import [java.nio.file FileSystems Paths Files LinkOption]))
 
 (def SourceType (s/enum :classpath :filesystem))
 
@@ -20,14 +20,14 @@
 
 (def Uri s/Any) ; java.net.URI
 
-(def Path s/Str)
+(def ShortPath s/Str)
 
-(def File s/Any) ; java.io.File
+(def JavaPath s/Any) ; java.nio.Path
 
 (def Resource
-  {:path          Path
+  {:short-path    ShortPath
    :uri           Uri
-   :file          File
+   :java-path     JavaPath
    :source-type   SourceType
    :resource-type ResourceType})
 
@@ -46,78 +46,78 @@
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
 (s/defn create-resource :- Resource
-  ([path :- Path
+  ([short-path :- ShortPath
     uri :- Uri
-    file :- File
+    java-path :- JavaPath
     source-type :- SourceType
     resource-type :- ResourceType]
-   {:path          path
+   {:short-path    short-path
     :uri           uri
-    :file          file
+    :java-path     java-path
     :source-type   source-type
     :resource-type resource-type})
-  ([path :- Path
-    file :- File
+  ([short-path :- ShortPath
+    java-path :- JavaPath
     source-type :- SourceType]
-   {:path          path
-    :uri           (.toURI file)
-    :file          file
+   {:short-path    short-path
+    :uri           (.toURI java-path)
+    :java-path     java-path
     :source-type   source-type
     :resource-type (cond
-                     (.isDirectory file) :dir
-                     (.isFile file) :file
+                     (Files/isDirectory java-path (into-array [LinkOption/NOFOLLOW_LINKS])) :dir
+                     (Files/isRegularFile java-path (into-array [LinkOption/NOFOLLOW_LINKS])) :java-path
                      :else :unknown)}))
 
 (s/defn is-file? :- s/Bool
   [resource :- Resource]
-  (= :file (:resource-type resource)))
+  (= :java-path (:resource-type resource)))
 
-(s/defn file-from-cp ;  :- File
-  [resource-path :- Path]
+(s/defn path-from-cp ;  :- JavaPath
+  [resource-path :- ShortPath]
   (try
-    (let [file-from-cp (io/file (io/resource resource-path))]
-      (when (.exists file-from-cp)
-        file-from-cp))
+    (let [path-from-cp (Paths/get (java.net.URI. (.toString (io/resource resource-path))))]
+      (when (.exists path-from-cp)
+        path-from-cp))
     (catch Exception e
       nil)))
 
-(s/defn file-from-fs ;  :- File
+(s/defn path-from-fs ;  :- JavaPath
   [fs-prefix :- Prefix
-   resource-path :- Path]
-  (let [file-from-fs (io/file (str fs-prefix resource-path))]
+   resource-path :- ShortPath]
+  (let [path-from-fs (Paths/get (java.net.URI. (str fs-prefix resource-path)))] ;with this, you need to give the absolute path
     (try
-      (when (.exists file-from-fs)
-        file-from-fs)
+      (when (.exists path-from-fs)
+        path-from-fs)
       (catch Exception e
         nil))))
 
 (defn resource-from-cp-or-fs ; :- Resource 
   [fs-prefix ; :- Prefix
-   base-path ; :- Path
-   resource-path ; :- Path
+   base-path ; :- ShortPath
+   resource-path ; :- ShortPath
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
   (let [full-path    (if (empty? base-path)
                        resource-path
                        (str base-path "/" resource-path))
-        file-from-fs (if from-fs
-                       (file-from-fs fs-prefix full-path)
+        path-from-fs (if from-fs
+                       (path-from-fs fs-prefix full-path)
                        nil)
-        file-from-cp (if from-cp
-                       (file-from-cp full-path)
+        path-from-cp (if from-cp
+                       (path-from-cp full-path)
                        nil)]
     (cond
-      (some? file-from-fs)
-      (create-resource resource-path file-from-fs :filesystem)
-      (some? file-from-cp)
-      (create-resource resource-path file-from-cp :classpath)
+      (some? path-from-fs)
+      (create-resource resource-path path-from-fs :filesystem)
+      (some? path-from-cp)
+      (create-resource resource-path path-from-cp :classpath)
       :else nil)))
 
-(defn file-from-cp-or-fs ; :- File
+(defn path-from-cp-or-fs ; :- JavaPath
   [fs-prefix ; :- Prefix
-   base-path ; :- Path
-   resource-path; :- Path
+   base-path ; :- ShortPath
+   resource-path; :- ShortPath
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -126,12 +126,12 @@
                   :from-cp from-cp
                   :from-fs from-fs)]
     (when (some? resource)
-      (:file resource))))
+      (:java-path resource))))
 
 (defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
-   base-path ;:- Path
-   paths ;:- [Path]
+   base-path ;:- ShortPath
+   paths ;:- [ShortPath]
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -155,18 +155,18 @@
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
-                              (.list (:file resource-to-work-with))))
+                              (.list (:java-path resource-to-work-with))))
                    result))))
       result)))
 
-(defn get-resource-paths-recursive ;:- [Path]
+(defn get-resource-paths-recursive ;:- [ShortPath]
   [fs-prefix ;:- Prefix
-   base-path ;:- Path
-   paths ;:- [Path]
+   base-path ;:- ShortPath
+   paths ;:- [ShortPath]
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (map #(:path %)
+  (map #(:short-path %)
        (get-resources-recursive
         fs-prefix base-path paths
         :from-cp from-cp
@@ -174,19 +174,19 @@
 
 ; TODO: Add files to keep
 (s/defn delete-resource-recursive!
-  [path :- s/Str]
+  [short-path :- s/Str]
   (let [resource-paths
         (reverse (get-resource-paths-recursive
-                  "" path [""] :from-cp false))]
+                  "" short-path [""] :from-cp false))]
     (doseq [resource-path resource-paths]
-      (io/delete-file (str path resource-path)))))
+      (io/delete-file (str short-path resource-path)))))
 
 ; TODO: add ignore patterns filtering
 (defn copy-resources!
   [fs-prefix ;:- Prefix
-   base-path ;:- Path
-   source-paths ;:- [Path]
-   target-path  ;:- Path
+   base-path ;:- ShortPath
+   source-paths ;:- [ShortPath]
+   target-path  ;:- ShortPath
    ignore-patterns ;:- s/Str
    ]
   (let [resource-paths
@@ -196,7 +196,7 @@
                                              source-paths " not found")))
       (doseq [resource-path resource-paths]
         (let [target-file (io/file target-path resource-path)
-              source-file (io/file (file-from-cp-or-fs
+              source-file (io/file (path-from-cp-or-fs
                                     fs-prefix
                                     base-path
                                     resource-path))]
@@ -206,11 +206,11 @@
 
 (defn distinct-resources-by-path
   [resources]
-  (loop [paths (set (map :path resources))
+  (loop [paths (set (map :short-path resources))
          resources resources
          acc []]
     (cond (empty? resources) acc
-          (contains? paths (:path (first resources))) (recur (disj paths (:path (first resources)))
+          (contains? paths (:short-path (first resources))) (recur (disj paths (:short-path (first resources)))
                                                              (rest resources)
                                                              (conj acc (first resources)))
           :else (recur paths (rest resources) acc))))

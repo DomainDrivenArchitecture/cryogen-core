@@ -22,8 +22,10 @@
 ; TODO: Fix this test!
 (deftest test-file-from-cp
   (is
-   (sut/file-from-cp
+   (sut/path-from-cp
     "dummy")))
+; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
+; get resources and see all
 
 (deftest test-resource-from-cp-or-fs
   (is
