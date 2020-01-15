@@ -10,7 +10,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s])
-   (:import [java.nio.file FileSystems Paths Files LinkOption]))
+  (:import [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
+           [java.nio.file.attribute FileAttribute]))
 
 (def SourceType (s/enum :classpath :filesystem))
 
@@ -60,7 +61,7 @@
     java-path :- JavaPath
     source-type :- SourceType]
    {:short-path    short-path
-    :uri           (.toURI java-path)
+    :uri           (java.net.URI. (str "file://" (.toString java-path)))
     :java-path     java-path
     :source-type   source-type
     :resource-type (cond
@@ -76,7 +77,7 @@
   [resource-path :- ShortPath]
   (try
     (let [path-from-cp (Paths/get (java.net.URI. (.toString (io/resource resource-path))))]
-      (when (.exists path-from-cp)
+      (when (Files/exists path-from-cp (into-array [LinkOption/NOFOLLOW_LINKS]))
         path-from-cp))
     (catch Exception e
       nil)))
@@ -84,9 +85,9 @@
 (s/defn path-from-fs ;  :- JavaPath
   [fs-prefix :- Prefix
    resource-path :- ShortPath]
-  (let [path-from-fs (Paths/get (java.net.URI. (str fs-prefix resource-path)))] ;with this, you need to give the absolute path
+  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" fs-prefix resource-path)))] ;with this, you need to give the absolute path
     (try
-      (when (.exists path-from-fs)
+      (when (Files/exists path-from-fs (into-array [LinkOption/NOFOLLOW_LINKS]))
         path-from-fs)
       (catch Exception e
         nil))))
@@ -155,7 +156,7 @@
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
-                              (.list (:java-path resource-to-work-with))))
+                              (.list (io/file (.toString (:java-path resource-to-work-with)))))) ; TODO better function
                    result))))
       result)))
 
@@ -177,16 +178,20 @@
   [short-path :- s/Str]
   (let [resource-paths
         (reverse (get-resource-paths-recursive
-                  "" short-path [""] :from-cp false))]
+                  (str (java.lang.System/getProperty "user.dir") "/")
+                  short-path 
+                  [""] 
+                  :from-cp false))]
     (doseq [resource-path resource-paths]
-      (io/delete-file (str short-path resource-path)))))
+      (Files/delete (Paths/get (java.net.URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" short-path resource-path))))
+      )))
 
 ; TODO: add ignore patterns filtering
 (defn copy-resources!
   [fs-prefix ;:- Prefix
    base-path ;:- ShortPath
    source-paths ;:- [ShortPath]
-   target-path  ;:- ShortPath
+   target-path  ;:- ShortPath #TODO is actually no path ???
    ignore-patterns ;:- s/Str
    ]
   (let [resource-paths
@@ -195,14 +200,16 @@
       (throw (IllegalArgumentException. (str "resource " resource-paths ", "
                                              source-paths " not found")))
       (doseq [resource-path resource-paths]
-        (let [target-file (io/file target-path resource-path)
-              source-file (io/file (path-from-cp-or-fs
-                                    fs-prefix
-                                    base-path
-                                    resource-path))]
-          (io/make-parents target-file)
-          (when (.isFile source-file)
-            (io/copy source-file target-file)))))))
+        (let [target-file (Paths/get (java.net.URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" target-path "/" resource-path)))
+              source-file (path-from-cp-or-fs
+                           fs-prefix
+                           base-path
+                           resource-path)]
+          (when (Files/isDirectory source-file (into-array [LinkOption/NOFOLLOW_LINKS]))
+            (Files/createDirectories target-file (into-array FileAttribute [])))
+          (when (Files/isRegularFile source-file (into-array [LinkOption/NOFOLLOW_LINKS]))
+            (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
+            ))))))
 
 (defn distinct-resources-by-path
   [resources]
