@@ -68,17 +68,18 @@
     :source-type   source-type
     :resource-type (cond
                      (Files/isDirectory java-path NoLinkOption) :dir
-                     (Files/isRegularFile java-path NoLinkOption) :java-path
+                     (Files/isRegularFile java-path NoLinkOption) :file
                      :else :unknown)}))
 
 (s/defn is-file? :- s/Bool
   [resource :- Resource]
   (= :file (:resource-type resource)))
 
+; contains either a jar or a file
 (s/defn path-from-cp ;  :- JavaPath
   [resource-path :- ShortPath]
   (try
-    (let [path-from-cp (Paths/get (.toURI (io/resource resource-path)))]
+    (let [path-from-cp (Paths/get (.toURI (io/resource resource-path)))] ; check if contains jar:
       (when (Files/exists path-from-cp NoLinkOption)
         path-from-cp))
     (catch Exception e
@@ -87,7 +88,17 @@
 (s/defn path-from-fs ;  :- JavaPath
   [fs-prefix :- Prefix
    resource-path :- ShortPath]
-  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" fs-prefix resource-path)))] ;with this, you need to give the absolute path
+  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" fs-prefix resource-path)))] ;fragile
+    (try
+      (when (Files/exists path-from-fs NoLinkOption)
+        path-from-fs)
+      (catch Exception e
+        nil))))
+
+; TODO move to path-from-cp
+(s/defn path-from-jar ;  :- JavaPath
+  [resource-path :- ShortPath]
+  (let [uri (.toUri (io/resource "dummy"))]
     (try
       (when (Files/exists path-from-fs NoLinkOption)
         path-from-fs)
