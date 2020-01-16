@@ -71,7 +71,7 @@
 
 (s/defn is-file? :- s/Bool
   [resource :- Resource]
-  (= :java-path (:resource-type resource)))
+  (= :file (:resource-type resource)))
 
 (s/defn path-from-cp ;  :- JavaPath
   [resource-path :- ShortPath]
