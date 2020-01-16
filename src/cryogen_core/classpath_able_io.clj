@@ -34,6 +34,8 @@
 
 (def public "resources/public")
 
+(def NoLinkOption (into-array [LinkOption/NOFOLLOW_LINKS]))
+
 (defn path
   "Creates path from given parts, ignore empty elements"
   [& path-parts]
@@ -61,12 +63,12 @@
     java-path :- JavaPath
     source-type :- SourceType]
    {:short-path    short-path
-    :uri           (java.net.URI. (str "file://" (.toString java-path)))
+    :uri           (.toUri java-path)
     :java-path     java-path
     :source-type   source-type
     :resource-type (cond
-                     (Files/isDirectory java-path (into-array [LinkOption/NOFOLLOW_LINKS])) :dir
-                     (Files/isRegularFile java-path (into-array [LinkOption/NOFOLLOW_LINKS])) :java-path
+                     (Files/isDirectory java-path NoLinkOption) :dir
+                     (Files/isRegularFile java-path NoLinkOption) :java-path
                      :else :unknown)}))
 
 (s/defn is-file? :- s/Bool
@@ -77,7 +79,7 @@
   [resource-path :- ShortPath]
   (try
     (let [path-from-cp (Paths/get (java.net.URI. (.toString (io/resource resource-path))))]
-      (when (Files/exists path-from-cp (into-array [LinkOption/NOFOLLOW_LINKS]))
+      (when (Files/exists path-from-cp NoLinkOption)
         path-from-cp))
     (catch Exception e
       nil)))
@@ -87,7 +89,7 @@
    resource-path :- ShortPath]
   (let [path-from-fs (Paths/get (java.net.URI. (str "file://" fs-prefix resource-path)))] ;with this, you need to give the absolute path
     (try
-      (when (Files/exists path-from-fs (into-array [LinkOption/NOFOLLOW_LINKS]))
+      (when (Files/exists path-from-fs NoLinkOption)
         path-from-fs)
       (catch Exception e
         nil))))
@@ -205,9 +207,9 @@
                            fs-prefix
                            base-path
                            resource-path)]
-          (when (Files/isDirectory source-file (into-array [LinkOption/NOFOLLOW_LINKS]))
+          (when (Files/isDirectory source-file NoLinkOption)
             (Files/createDirectories target-file (into-array FileAttribute [])))
-          (when (Files/isRegularFile source-file (into-array [LinkOption/NOFOLLOW_LINKS]))
+          (when (Files/isRegularFile source-file NoLinkOption)
             (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
             ))))))
 
