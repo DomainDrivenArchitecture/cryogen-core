@@ -78,7 +78,7 @@
 (s/defn path-from-cp ;  :- JavaPath
   [resource-path :- ShortPath]
   (try
-    (let [path-from-cp (Paths/get (java.net.URI. (.toString (io/resource resource-path))))]
+    (let [path-from-cp (Paths/get (.toURI (io/resource resource-path)))]
       (when (Files/exists path-from-cp NoLinkOption)
         path-from-cp))
     (catch Exception e
