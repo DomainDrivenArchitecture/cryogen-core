@@ -50,12 +50,3 @@
     (doseq [resource resources]
       (io/make-parents (io/file (str target-path "/" (:path resource))))
       (.mkdir (io/file (str target-path "/" (:path resource)))))))
-
-; TODO lookup if we need to close the stream
-(defn extract-file-from-jar
-  [Uri
-   file-path]
-  (let [zippath (.getPath
-                 (FileSystems/getFileSystem (java.net.URI. Uri)) file-path
-                 (into-array String '()))]
-    (apply str (map char (Files/readAllBytes zippath)))))

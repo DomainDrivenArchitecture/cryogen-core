@@ -75,35 +75,44 @@
   [resource :- Resource]
   (= :file (:resource-type resource)))
 
+(s/defn create-FileSystem
+  [Resourece-Uri :- Uri]
+  (let [path-to-filesystem (st/join (pop (st/split (.toString Resourece-Uri) #"!")))]
+    (try 
+      (FileSystems/newFileSystem
+       (java.net.URI. path-to-filesystem)
+       {})
+      (catch Exception e
+        nil))))
+
 ; contains either a jar or a file
 (s/defn path-from-cp ;  :- JavaPath
   [resource-path :- ShortPath]
   (try
-    (let [path-from-cp (Paths/get (.toURI (io/resource resource-path)))] ; check if contains jar:
-      (when (Files/exists path-from-cp NoLinkOption)
-        path-from-cp))
+    (let [Resource-Uri (.toURI (io/resource resource-path))] ; check if contains jar:
+      (when (st/starts-with? (.toString Resource-Uri) "jar:")
+        (create-FileSystem Resource-Uri))
+      (when (Files/exists (Paths/get Resource-Uri) NoLinkOption)
+        (Paths/get Resource-Uri)))
     (catch Exception e
       nil)))
 
 (s/defn path-from-fs ;  :- JavaPath
-  [fs-prefix :- Prefix
-   resource-path :- ShortPath]
-  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" fs-prefix resource-path)))] ;fragile
+  [full-path :- ShortPath]
+  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" full-path)))] ;fragile
     (try
       (when (Files/exists path-from-fs NoLinkOption)
         path-from-fs)
       (catch Exception e
         nil))))
 
-; TODO move to path-from-cp
-(s/defn path-from-jar ;  :- JavaPath
-  [resource-path :- ShortPath]
-  (let [uri (.toUri (io/resource "dummy"))]
-    (try
-      (when (Files/exists path-from-fs NoLinkOption)
-        path-from-fs)
-      (catch Exception e
-        nil))))
+(s/defn construct-full-path
+  [fs-prefix
+   base-path
+   resource-path]
+  (if (st/starts-with? fs-prefix "./")
+    (str (st/replace fs-prefix #"\./" (str (java.lang.System/getProperty "user.dir") "/")) "/" base-path "/" resource-path)
+    (str fs-prefix "/" base-path "/" resource-path)))
 
 (defn resource-from-cp-or-fs ; :- Resource 
   [fs-prefix ; :- Prefix
@@ -112,14 +121,15 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [full-path    (if (empty? base-path)
-                       resource-path
-                       (str base-path "/" resource-path))
+  (let [full-path    (construct-full-path fs-prefix base-path resource-path)
+        cp-path      (if (empty? base-path)
+                        resource-path
+                        (str base-path "/" resource-path))
         path-from-fs (if from-fs
-                       (path-from-fs fs-prefix full-path)
+                       (path-from-fs full-path)
                        nil)
         path-from-cp (if from-cp
-                       (path-from-cp full-path)
+                       (path-from-cp cp-path)
                        nil)]
     (cond
       (some? path-from-fs)
@@ -204,7 +214,7 @@
   [fs-prefix ;:- Prefix
    base-path ;:- ShortPath
    source-paths ;:- [ShortPath]
-   target-path  ;:- ShortPath #TODO is actually no path ???
+   target-path  ;:- ShortPath
    ignore-patterns ;:- s/Str
    ]
   (let [resource-paths

@@ -11,13 +11,17 @@
             [clojure.java.io :as io]
             [schema.core :as s]
             [cryogen-core.file-test-tools :as ftt]
-            [cryogen-core.classpath-able-io :as sut]))
+            [cryogen-core.classpath-able-io :as sut])
+  (:import [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
+           [java.nio.file.attribute FileAttribute]))
 
 (s/set-fn-validation! true)
 
 (def theme "bootstrap4-test")
 
 (def target "target/tmp")
+
+(def NoLinkOption (into-array [LinkOption/NOFOLLOW_LINKS]))
 
 ; TODO: Fix this test!
 (deftest test-file-from-cp
@@ -29,27 +33,27 @@
 
 (deftest test-resource-from-cp-or-fs
   (is
-   (.exists
-    (:file
+   (Files/exists
+    (:java-path
      (sut/resource-from-cp-or-fs
-      "./test-resources/"
+      "./test-resources"
       "templates/themes/bootstrap4-test"
-      "js"))))
+      "js")) NoLinkOption))
   (is
-   (.exists
-    (:file
+   (Files/exists
+    (:java-path
      (sut/resource-from-cp-or-fs
-      "./" "" ".gitkeep"))))
+      "./" "" ".gitkeep")) NoLinkOption))
   (is
    (some? (sut/resource-from-cp-or-fs
-           "./test-resources/"
+           "./test-resources"
            "templates/themes/bootstrap4-test"
            "js")))
   (is
    (some? (sut/resource-from-cp-or-fs
            "./not-existing-so-load-from-cp" "" ".gitkeep")))
   (is (=
-       {:path          "js/subdir"
+       {:short-path    "js/subdir"
         :source-type   :classpath
         :resource-type :dir}
        (ftt/filter-object
@@ -63,7 +67,7 @@
        []
        (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
   (is (=
-       [{:path          "js/dummy.js"
+       [{:short-path   "js/dummy.js"
          :source-type   :classpath
          :resource-type :file}]
        (map ftt/filter-object
@@ -77,7 +81,7 @@
        ["js/subdir"
         "js/subdir/subdummy.js"
         "js/subdir/test.js"]
-       (sort (map :path
+       (sort (map :short-path
                   (sut/get-resources-recursive
                    "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
   (is (=
@@ -92,7 +96,7 @@
         "./js/subdir"
         "./js/subdir/subdummy.js"
         "./js/subdir/test.js"]
-       (sort (map :path
+       (sort (map :short-path
                   (sut/get-resources-recursive
                    "" "templates/themes/bootstrap4-test" ["."]))))))
 
