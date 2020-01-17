@@ -10,7 +10,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s])
-  (:import [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
+  (:import [java.net Uri]
+           [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
 (def SourceType (s/enum :classpath :filesystem))
@@ -77,13 +78,11 @@
 
 (s/defn init-file-system
   [resource-uri :- ResourceUri]
-  (let [path-to-filesystem (pop (st/split (.toString resource-uri) #"!"))]
+  (let [filesystem-uri (Uri. (pop (st/split (.toString resource-uri) #"!")))]
     (try 
-      (FileSystems/newFileSystem
-       (java.net.URI. path-to-filesystem)
-       {})
+      (FileSystems/getFileSystem filesystem-uri)
       (catch Exception e
-        nil))))
+        (FileSystems/newFileSystem filesystem-uri {})))))
 
 ; contains either a jar or a file
 (s/defn path-from-cp ;  :- JavaPath
