@@ -19,8 +19,6 @@
 
 (def Prefix s/Str)
 
-(def FilesystemUri s/Any) ; java.net.URI
-
 (def ResourceUri s/Any) ; java.net.URI
 
 (def ShortPath s/Str)
@@ -77,9 +75,9 @@
   [resource :- Resource]
   (= :file (:resource-type resource)))
 
-(s/defn init-FileSystem
+(s/defn init-file-system
   [resource-uri :- ResourceUri]
-  (let [path-to-filesystem (st/join (pop (st/split (.toString resource-uri) #"!")))]
+  (let [path-to-filesystem (pop (st/split (.toString resource-uri) #"!"))]
     (try 
       (FileSystems/newFileSystem
        (java.net.URI. path-to-filesystem)
@@ -93,7 +91,7 @@
   (try
     (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
       (when (st/starts-with? (.toString resource-uri) "jar:")
-        (init-FileSystem resource-uri))
+        (init-file-system resource-uri))
       (when (Files/exists (Paths/get resource-uri) NoLinkOption)
         (Paths/get resource-uri)))
     (catch Exception e
