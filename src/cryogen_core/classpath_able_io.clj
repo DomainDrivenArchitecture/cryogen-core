@@ -10,7 +10,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s])
-  (:import [java.net Uri]
+  (:import [java.net URI]
            [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
@@ -78,7 +78,7 @@
 
 (s/defn init-file-system
   [resource-uri :- ResourceUri]
-  (let [filesystem-uri (Uri. (pop (st/split (.toString resource-uri) #"!")))]
+  (let [filesystem-uri (URI. (first (st/split (.toString resource-uri) #"!")))]
     (try 
       (FileSystems/getFileSystem filesystem-uri)
       (catch Exception e
@@ -89,7 +89,7 @@
   [resource-path :- ShortPath]
   (try
     (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
-      (when (st/starts-with? (.toString resource-uri) "jar:")
+      (when (= (.getScheme resource-uri) "jar")
         (init-file-system resource-uri))
       (when (Files/exists (Paths/get resource-uri) NoLinkOption)
         (Paths/get resource-uri)))
@@ -98,7 +98,7 @@
 
 (s/defn path-from-fs ;  :- JavaPath
   [full-path :- ShortPath]
-  (let [path-from-fs (Paths/get (java.net.URI. (str "file://" full-path)))] ;fragile
+  (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
     (try
       (when (Files/exists path-from-fs NoLinkOption)
         path-from-fs)
@@ -205,7 +205,7 @@
                   [""] 
                   :from-cp false))]
     (doseq [resource-path resource-paths]
-      (Files/delete (Paths/get (java.net.URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" short-path resource-path))))
+      (Files/delete (Paths/get (URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" short-path resource-path))))
       )))
 
 ; TODO: add ignore patterns filtering
@@ -222,7 +222,7 @@
       (throw (IllegalArgumentException. (str "resource " resource-paths ", "
                                              source-paths " not found")))
       (doseq [resource-path resource-paths]
-        (let [target-file (Paths/get (java.net.URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" target-path "/" resource-path)))
+        (let [target-file (Paths/get (URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" target-path "/" resource-path)))
               source-file (path-from-cp-or-fs
                            fs-prefix
                            base-path

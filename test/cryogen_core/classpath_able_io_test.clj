@@ -23,13 +23,10 @@
 
 (def NoLinkOption (into-array [LinkOption/NOFOLLOW_LINKS]))
 
-(sut/init-file-system (io/resource "dummy"))
-
 ; TODO: Fix this test!
 (deftest test-file-from-cp
   (is
-   (sut/path-from-cp
-    "dummy")))
+   (sut/path-from-cp "dummy")))
 ; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
 ; get resources and see all
 
