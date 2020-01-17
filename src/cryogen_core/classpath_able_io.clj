@@ -10,7 +10,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s])
-  (:import [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
+  (:import [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
 (def SourceType (s/enum :classpath :filesystem))
@@ -179,7 +179,7 @@
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
-                              (.list (io/file (.toString (:java-path resource-to-work-with)))))) ; TODO better function
+                              (.list (io/file (.toString (:java-path resource-to-work-with)))))) ; TODO doesnt work in jars
                    result))))
       result)))
 

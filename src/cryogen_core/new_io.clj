@@ -48,5 +48,5 @@
   (let [resources (get-distinct-markup-dirs fs-prefix posts pages
                                             ignore-patterns)]
     (doseq [resource resources]
-      (io/make-parents (io/file (str target-path "/" (:path resource))))
-      (.mkdir (io/file (str target-path "/" (:path resource)))))))
+      (io/make-parents (io/file (str target-path "/" (:short-path resource))))
+      (.mkdir (io/file (str target-path "/" (:short-path resource)))))))

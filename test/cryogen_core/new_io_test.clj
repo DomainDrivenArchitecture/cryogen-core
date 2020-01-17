@@ -24,9 +24,9 @@
         "test_pages/home"
         "test_posts"
         "test_posts/home"]
-       (sort (map :path
+       (sort (map :short-path
                   (sut/get-distinct-markup-dirs
-                   "not-existing-get-from-cp"
+                   "./not-existing-get-from-cp"
                    "test_posts" "test_pages"
                    ""))))))
 
@@ -34,7 +34,9 @@
   (is (do
         (sut/delete-resource-recursive! (str target "2"))
         (sut/create-dirs-from-markup-folders!
-         "not-existing-get-from-cp" "test_posts" "test_pages"
+         "./not-existing-get-from-cp" 
+         "test_posts" 
+         "test_pages"
          (str target "2") "")
         (and (ftt/verify-dir-exists
               (str (str target "2") "/test_pages"))
