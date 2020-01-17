@@ -19,7 +19,9 @@
 
 (def Prefix s/Str)
 
-(def Uri s/Any) ; java.net.URI
+(def FilesystemUri s/Any) ; java.net.URI
+
+(def ResourceUri s/Any) ; java.net.URI
 
 (def ShortPath s/Str)
 
@@ -27,7 +29,7 @@
 
 (def Resource
   {:short-path    ShortPath
-   :uri           Uri
+   :uri           ResourceUri
    :java-path     JavaPath
    :source-type   SourceType
    :resource-type ResourceType})
@@ -50,7 +52,7 @@
 
 (s/defn create-resource :- Resource
   ([short-path :- ShortPath
-    uri :- Uri
+    uri :- ResourceUri
     java-path :- JavaPath
     source-type :- SourceType
     resource-type :- ResourceType]
@@ -75,9 +77,9 @@
   [resource :- Resource]
   (= :file (:resource-type resource)))
 
-(s/defn create-FileSystem
-  [Resourece-Uri :- Uri]
-  (let [path-to-filesystem (st/join (pop (st/split (.toString Resourece-Uri) #"!")))]
+(s/defn init-FileSystem
+  [resource-uri :- ResourceUri]
+  (let [path-to-filesystem (st/join (pop (st/split (.toString resource-uri) #"!")))]
     (try 
       (FileSystems/newFileSystem
        (java.net.URI. path-to-filesystem)
@@ -89,11 +91,11 @@
 (s/defn path-from-cp ;  :- JavaPath
   [resource-path :- ShortPath]
   (try
-    (let [Resource-Uri (.toURI (io/resource resource-path))] ; check if contains jar:
-      (when (st/starts-with? (.toString Resource-Uri) "jar:")
-        (create-FileSystem Resource-Uri))
-      (when (Files/exists (Paths/get Resource-Uri) NoLinkOption)
-        (Paths/get Resource-Uri)))
+    (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
+      (when (st/starts-with? (.toString resource-uri) "jar:")
+        (init-FileSystem resource-uri))
+      (when (Files/exists (Paths/get resource-uri) NoLinkOption)
+        (Paths/get resource-uri)))
     (catch Exception e
       nil)))
 
