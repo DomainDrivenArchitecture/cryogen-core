@@ -101,13 +101,13 @@
                    "" "templates/themes/bootstrap4-test" ["."]))))))
 
 (deftest test-distinct-resources-by-path
-  (is (= [{:path "pages/test"}
-          {:path "pages/test1"}
-          {:path "pages/test2"}]
-         (sut/distinct-resources-by-path [{:path "pages/test"}
-                                          {:path "pages/test1"}
-                                          {:path "pages/test2"}
-                                          {:path "pages/test1"}]))))
+  (is (= [{:short-path "pages/test"}
+          {:short-path "pages/test1"}
+          {:short-path "pages/test2"}]
+         (sut/distinct-resources-by-path [{:short-path "pages/test"}
+                                          {:short-path "pages/test1"}
+                                          {:short-path "pages/test2"}
+                                          {:short-path "pages/test1"}]))))
 
 (deftest test-filter-for-ignore-patterns
   (is (=
