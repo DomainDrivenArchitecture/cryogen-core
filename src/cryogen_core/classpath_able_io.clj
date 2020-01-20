@@ -14,6 +14,7 @@
            [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
+; -------------------- Domain Definition ------------------------------
 (def SourceType (s/enum :classpath :filesystem))
 
 (def ResourceType (s/enum :file :dir :unknown))
@@ -33,22 +34,7 @@
    :source-type   SourceType
    :resource-type ResourceType})
 
-(def public "resources/public")
-
-(def NoLinkOption (into-array [LinkOption/NOFOLLOW_LINKS]))
-
-(defn path
-  "Creates path from given parts, ignore empty elements"
-  [& path-parts]
-  (->> path-parts
-       (remove st/blank?)
-       (st/join "/")
-       (#(st/replace % #"/+" "/"))))
-
-(defn filter-for-ignore-patterns
-  [ignore-patterns source-list]
-  (filter #(not (re-matches ignore-patterns %)) source-list))
-
+; ----------------------- Domain functions ------------------------
 (s/defn create-resource :- Resource
   ([short-path :- ShortPath
     uri :- ResourceUri
@@ -68,13 +54,33 @@
     :java-path     java-path
     :source-type   source-type
     :resource-type (cond
-                     (Files/isDirectory java-path NoLinkOption) :dir
-                     (Files/isRegularFile java-path NoLinkOption) :file
+                     (Files/isDirectory java-path no-link-option) :dir
+                     (Files/isRegularFile java-path no-link-option) :file
                      :else :unknown)}))
 
 (s/defn is-file? :- s/Bool
   [resource :- Resource]
   (= :file (:resource-type resource)))
+
+(defn filter-for-ignore-patterns
+  [ignore-patterns source-list]
+  (filter #(not (re-matches ignore-patterns %)) source-list))
+
+; ------------------- infra ---------------------------------
+
+(def public "resources/public")
+
+(def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
+
+(defn current-path [])
+
+(defn path
+  "Creates path from given parts, ignore empty elements"
+  [& path-parts]
+  (->> path-parts
+       (remove st/blank?)
+       (st/join "/")
+       (#(st/replace % #"/+" "/"))))
 
 (s/defn init-file-system
   [resource-uri :- ResourceUri]
@@ -91,7 +97,7 @@
     (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
       (when (= (.getScheme resource-uri) "jar")
         (init-file-system resource-uri))
-      (when (Files/exists (Paths/get resource-uri) NoLinkOption)
+      (when (Files/exists (Paths/get resource-uri) no-link-option)
         (Paths/get resource-uri)))
     (catch Exception e
       nil)))
@@ -100,7 +106,7 @@
   [full-path :- ShortPath]
   (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
     (try
-      (when (Files/exists path-from-fs NoLinkOption)
+      (when (Files/exists path-from-fs no-link-option)
         path-from-fs)
       (catch Exception e
         nil))))
@@ -227,9 +233,9 @@
                            fs-prefix
                            base-path
                            resource-path)]
-          (when (Files/isDirectory source-file NoLinkOption)
+          (when (Files/isDirectory source-file no-link-option)
             (Files/createDirectories target-file (into-array FileAttribute [])))
-          (when (Files/isRegularFile source-file NoLinkOption)
+          (when (Files/isRegularFile source-file no-link-option)
             (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
             ))))))
 
