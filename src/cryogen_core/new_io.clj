@@ -13,6 +13,8 @@
 
 (def delete-resource-recursive! cp-io/delete-resource-recursive!)
 
+(def public "resources/public")
+
 (defn copy-resources-from-templates!
   [fs-prefix resources target-path ignore-patterns]
   (let [resource-path "templates"]

@@ -69,8 +69,6 @@
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
 ; ------------------- infra ---------------------------------
-(def public "resources/public")
-
 (defn current-path [])
 
 (defn user-dir []
