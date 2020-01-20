@@ -21,14 +21,16 @@
 
 (def target "target/tmp")
 
-; TODO: Fix this test!
 (deftest test-file-from-cp
   (is
    (sut/path-from-cp "dummy")))
-; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
-; get resources and see all
 
 (deftest test-resource-from-cp-or-fs
+  (is
+   (some? (sut/resource-from-cp-or-fs
+           "not-existing-filesystem-path"
+           ""
+           "dummy")))
   (is
    (Files/exists
     (:java-path
@@ -63,6 +65,13 @@
   (is (=
        []
        (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
+  ; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
+  ; get resources and see all
+  (is (=
+       [{:short-path "dummy", :source-type :classpath, :resource-type :dir}
+        {:short-path "dummy/dummy_from_jar", :source-type :classpath, :resource-type :file}]
+       (map ftt/filter-object
+            (sut/get-resources-recursive "not-existing" "" ["dummy"]))))
   (is (=
        [{:short-path   "js/dummy.js"
          :source-type   :classpath

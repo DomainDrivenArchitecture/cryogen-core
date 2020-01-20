@@ -176,6 +176,8 @@
                                      :from-fs from-fs)
               result                (into result
                                           [resource-to-work-with])]
+          ; (println path-to-work-with)
+          ; (println (:java-path resource-to-work-with))
           (cond
             (nil? resource-to-work-with) []
             (is-file? resource-to-work-with)
