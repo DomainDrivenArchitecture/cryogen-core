@@ -35,6 +35,8 @@
    :resource-type ResourceType})
 
 ; ----------------------- Domain functions ------------------------
+(def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
+
 (s/defn create-resource :- Resource
   ([short-path :- ShortPath
     uri :- ResourceUri
@@ -67,10 +69,7 @@
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
 ; ------------------- infra ---------------------------------
-
 (def public "resources/public")
-
-(def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
 
 (defn current-path [])
 
@@ -79,7 +78,10 @@
 
 (defn absolut-path
   [& path-elements]
-  (Paths/get (user-dir) (into-array String path-elements)))
+  (let [path (Paths/get (first path-elements) (into-array String (rest path-elements)))]
+    (if (.isAbsolute path)
+      path
+      (Paths/get (user-dir) (into-array String path-elements)))))
 
 (defn path
   "Creates path from given parts, ignore empty elements"
@@ -118,14 +120,6 @@
       (catch Exception e
         nil))))
 
-(s/defn construct-full-path
-  [fs-prefix
-   base-path
-   resource-path]
-  (if (st/starts-with? fs-prefix "./")
-    (str (st/replace fs-prefix #"\./" (str (user-dir) "/")) "/" base-path "/" resource-path)
-    (str fs-prefix "/" base-path "/" resource-path)))
-
 (defn resource-from-cp-or-fs ; :- Resource 
   [fs-prefix ; :- Prefix
    base-path ; :- ShortPath
@@ -133,7 +127,7 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [full-path    (construct-full-path fs-prefix base-path resource-path)
+  (let [full-path    (.toString (absolut-path fs-prefix base-path resource-path))
         cp-path      (if (empty? base-path)
                         resource-path
                         (str base-path "/" resource-path))
