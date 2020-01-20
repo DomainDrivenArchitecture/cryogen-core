@@ -67,6 +67,8 @@
        (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
   ; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
   ; get resources and see all
+  ; add test here
+  ; TODO: fix dir.list on jar
   (is (=
        [{:short-path "dummy", :source-type :classpath, :resource-type :dir}
         {:short-path "dummy/dummy_from_jar", :source-type :classpath, :resource-type :file}]
