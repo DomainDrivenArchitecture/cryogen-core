@@ -21,8 +21,6 @@
 
 (def target "target/tmp")
 
-(def NoLinkOption (into-array [LinkOption/NOFOLLOW_LINKS]))
-
 ; TODO: Fix this test!
 (deftest test-file-from-cp
   (is
@@ -37,12 +35,12 @@
      (sut/resource-from-cp-or-fs
       "./test-resources"
       "templates/themes/bootstrap4-test"
-      "js")) NoLinkOption))
+      "js")) sut/no-link-option))
   (is
    (Files/exists
     (:java-path
      (sut/resource-from-cp-or-fs
-      "./" "" ".gitkeep")) NoLinkOption))
+      "./" "" ".gitkeep")) sut/no-link-option))
   (is
    (some? (sut/resource-from-cp-or-fs
            "./test-resources"
