@@ -74,6 +74,13 @@
 
 (defn current-path [])
 
+(defn user-dir []
+  (java.lang.System/getProperty "user.dir"))
+
+(defn absolut-path
+  [& path-elements]
+  (Paths/get (user-dir) (into-array String path-elements)))
+
 (defn path
   "Creates path from given parts, ignore empty elements"
   [& path-parts]
@@ -116,7 +123,7 @@
    base-path
    resource-path]
   (if (st/starts-with? fs-prefix "./")
-    (str (st/replace fs-prefix #"\./" (str (java.lang.System/getProperty "user.dir") "/")) "/" base-path "/" resource-path)
+    (str (st/replace fs-prefix #"\./" (str (user-dir) "/")) "/" base-path "/" resource-path)
     (str fs-prefix "/" base-path "/" resource-path)))
 
 (defn resource-from-cp-or-fs ; :- Resource 
@@ -206,12 +213,12 @@
   [short-path :- s/Str]
   (let [resource-paths
         (reverse (get-resource-paths-recursive
-                  (str (java.lang.System/getProperty "user.dir") "/")
+                  (str (user-dir) "/")
                   short-path 
                   [""] 
                   :from-cp false))]
     (doseq [resource-path resource-paths]
-      (Files/delete (Paths/get (URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" short-path resource-path))))
+      (Files/delete (absolut-path short-path resource-path))
       )))
 
 ; TODO: add ignore patterns filtering
@@ -228,7 +235,7 @@
       (throw (IllegalArgumentException. (str "resource " resource-paths ", "
                                              source-paths " not found")))
       (doseq [resource-path resource-paths]
-        (let [target-file (Paths/get (URI. (str "file://" (java.lang.System/getProperty "user.dir") "/" target-path "/" resource-path)))
+        (let [target-file (absolut-path target-path resource-path)
               source-file (path-from-cp-or-fs
                            fs-prefix
                            base-path
