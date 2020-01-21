@@ -19,3 +19,8 @@ TODO: to solve reading from jars:
     (into-array String '()))
     (into-array java.nio.file.LinkOption {}))
 
+(some? (sut/resource-from-cp-or-fs
+           "not-existing-filesystem-path"
+           ""
+           "dummy"))
+

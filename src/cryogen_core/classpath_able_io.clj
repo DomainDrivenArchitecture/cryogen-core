@@ -185,6 +185,7 @@
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
+                              ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
                               (.list (io/file (.toString (:java-path resource-to-work-with)))))) ; TODO doesnt work in jars
                    result))))
       result)))
