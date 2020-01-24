@@ -24,7 +24,7 @@
         "test_pages/home"
         "test_posts"
         "test_posts/home"]
-       (sort (map :short-path
+       (sort (map :virtual-path
                   (sut/get-distinct-markup-dirs
                    "./not-existing-get-from-cp"
                    "test_posts" "test_pages"
