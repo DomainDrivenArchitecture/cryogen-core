@@ -68,7 +68,7 @@
                                      "./not-existing-so-load-from-cp"
                                      "templates/themes/bootstrap4-test"
                                      "js/subdir")))))
-  (is (= ["dummy-from-jar"]
+  (is (= ["dummy_from_jar"]
          (sut/list-entries-for-dir (sut/resource-from-cp-or-fs
                                     "not-existing-filesystem-path"
                                     ""

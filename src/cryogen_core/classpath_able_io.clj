@@ -11,6 +11,7 @@
             [clojure.string :as st]
             [schema.core :as s])
   (:import [java.net URI]
+           [java.util.jar JarFile JarEntry]
            [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
@@ -93,13 +94,17 @@
        (st/join "/")
        (#(st/replace % #"/+" "/"))))
 
+(s/defn
+  filesystem-uri
+  [resource-uri :- JavaUri]
+  (URI. (first (st/split (.toString resource-uri) #"!"))))
+
 (s/defn init-file-system
   [resource-uri :- JavaUri]
-  (let [filesystem-uri (URI. (first (st/split (.toString resource-uri) #"!")))]
-    (try 
-      (FileSystems/getFileSystem filesystem-uri)
+  (try 
+      (FileSystems/getFileSystem (filesystem-uri resource-uri))
       (catch Exception e
-        (FileSystems/newFileSystem filesystem-uri {})))))
+        (FileSystems/newFileSystem (filesystem-uri resource-uri) {}))))
 
 ; contains either a jar or a file
 (s/defn path-from-cp ;:- JavaPath
@@ -160,9 +165,24 @@
     (when (some? resource)
       (:java-path resource))))
 
-(s/defn list-entries-for-dir ;:- [VirtualPath]
-  [resource :- Resource] 
-  (.list (io/file (.toString (:java-path resource))))) ; TODO doesnt work in jars
+(s/defn
+  list-entries-for-dir ;:- [VirtualPath]
+  [resource :- Resource]
+  (if (= :java-classpath-jar (:source-type resource))
+    (filter
+     (fn [je] (and (st/starts-with? je (:virtual-path resource))
+                   (not (= je (str (:virtual-path resource) "/")))))
+     (map #(.getName ^JarEntry %)
+          (enumeration-seq
+           (.entries
+            (JarFile.
+             (.toFile
+              (Paths/get
+               (URI.
+                (.getSchemeSpecificPart
+                 (filesystem-uri (:java-uri resource)))))))))))
+    ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
+  (.list (.toFile (:java-path resource)))))
 
 (defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
@@ -193,7 +213,6 @@
             :else
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
-                              ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
                               (list-entries-for-dir resource-to-work-with))) 
                    result))))
       result)))

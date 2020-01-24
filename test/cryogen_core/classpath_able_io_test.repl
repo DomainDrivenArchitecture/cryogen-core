@@ -24,3 +24,20 @@ TODO: to solve reading from jars:
            ""
            "dummy"))
 
+
+(filter 
+ #(str/starts-with? % "dummy") 
+ (map 
+  #(.getName ^JarEntry %)
+  (enumeration-seq
+   (.entries
+    (JarFile.
+     (.toFile
+      (Paths/get
+       (URI.
+        (.getSchemeSpecificPart 
+          (filesystem-uri 
+          (:java-uri (resource-from-cp-or-fs
+            "not-existing-filesystem-path"
+            ""
+            "dummy"))))))))))))
