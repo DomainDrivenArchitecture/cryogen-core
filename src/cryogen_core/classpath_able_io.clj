@@ -15,18 +15,12 @@
            [java.nio.file.attribute FileAttribute]))
 
 ; -------------------- Domain Definition ------------------------------
-(def SourceType (s/enum :classpath :filesystem))
-
+(def SourceType (s/enum :java-classpath-filesystem :java-classpath-jar :filesystem))
 (def ResourceType (s/enum :file :dir :unknown))
-
 (def Prefix s/Str)
-
 (def JavaUri s/Any) ; java.net.URI
-
 (def VirtualPath s/Str)
-
 (def JavaPath s/Any) ; java.nio.Path
-
 (def Resource
   {:virtual-path  VirtualPath
    :source-type   SourceType
@@ -37,28 +31,38 @@
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
 
-(s/defn create-resource :- Resource
+(s/defn is-from-classpath-jar? :- s/Bool
+  [uri ;:- JavaUri
+   ]
+  (= (.getScheme uri) "jar"))
+
+(s/defn create-fs-resource :- Resource
   ([virtual-path :- VirtualPath
-    uri :- JavaUri
-    java-path :- JavaPath
-    source-type :- SourceType
-    resource-type :- ResourceType]
-   {:virtual-path    virtual-path
-    :java-uri            uri
+    java-path :- JavaPath]
+   {:virtual-path  virtual-path
+    :java-uri      (.toUri java-path)
     :java-path     java-path
-    :source-type   source-type
-    :resource-type resource-type})
-  ([virtual-path :- VirtualPath
-    java-path :- JavaPath
-    source-type :- SourceType]
-   {:virtual-path    virtual-path
-    :java-uri            (.toUri java-path)
-    :java-path     java-path
-    :source-type   source-type
+    :source-type   :filesystem
     :resource-type (cond
                      (Files/isDirectory java-path no-link-option) :dir
                      (Files/isRegularFile java-path no-link-option) :file
                      :else :unknown)}))
+
+
+(s/defn create-cp-resource :- Resource
+  ([virtual-path :- VirtualPath
+    java-path :- JavaPath]
+   (let [java-uri (.toUri java-path)]
+     {:virtual-path  virtual-path
+      :java-uri      java-uri
+      :java-path     java-path
+      :source-type   (cond (is-from-classpath-jar? java-uri)
+                           :java-classpath-jar
+                           :else :java-classpath-filesystem)
+      :resource-type (cond
+                       (Files/isDirectory java-path no-link-option) :dir
+                       (Files/isRegularFile java-path no-link-option) :file
+                       :else :unknown)})))
 
 (s/defn is-file? :- s/Bool
   [resource :- Resource]
@@ -98,18 +102,18 @@
         (FileSystems/newFileSystem filesystem-uri {})))))
 
 ; contains either a jar or a file
-(s/defn path-from-cp ;  :- JavaPath
+(s/defn path-from-cp ;:- JavaPath
   [resource-path :- VirtualPath]
   (try
-    (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
-      (when (= (.getScheme resource-uri) "jar")
+    (let [resource-uri (.toURI (io/resource resource-path))]
+      (when (is-from-classpath-jar? resource-uri)
         (init-file-system resource-uri))
       (when (Files/exists (Paths/get resource-uri) no-link-option)
         (Paths/get resource-uri)))
     (catch Exception e
       nil)))
 
-(s/defn path-from-fs ;  :- JavaPath
+(s/defn path-from-fs ;:- JavaPath
   [full-path :- VirtualPath]
   (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
     (try
@@ -118,10 +122,10 @@
       (catch Exception e
         nil))))
 
-(defn resource-from-cp-or-fs ; :- Resource 
-  [fs-prefix ; :- Prefix
-   base-path ; :- VirtualPath
-   resource-path ; :- VirtualPath
+(defn resource-from-cp-or-fs ;:- Resource 
+  [fs-prefix ;:- Prefix
+   base-path ;:- VirtualPath
+   resource-path ;:- VirtualPath
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -137,9 +141,9 @@
                        nil)]
     (cond
       (some? path-from-fs)
-      (create-resource resource-path path-from-fs :filesystem)
+      (create-fs-resource resource-path path-from-fs)
       (some? path-from-cp)
-      (create-resource resource-path path-from-cp :classpath)
+      (create-cp-resource resource-path path-from-cp)
       :else nil)))
 
 (defn path-from-cp-or-fs ; :- JavaPath
@@ -155,6 +159,10 @@
                   :from-fs from-fs)]
     (when (some? resource)
       (:java-path resource))))
+
+(s/defn list-entries-for-dir ;:- [VirtualPath]
+  [resource :- Resource] 
+  (.list (io/file (.toString (:java-path resource))))) ; TODO doesnt work in jars
 
 (defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
@@ -186,7 +194,7 @@
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
                               ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
-                              (.list (io/file (.toString (:java-path resource-to-work-with)))))) ; TODO doesnt work in jars
+                              (list-entries-for-dir resource-to-work-with))) 
                    result))))
       result)))
 

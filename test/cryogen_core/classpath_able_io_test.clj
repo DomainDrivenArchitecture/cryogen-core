@@ -30,9 +30,9 @@
    (some? (sut/resource-from-cp-or-fs
            "not-existing-filesystem-path"
            ""
-           "dummy")))
+            "dummy")))
   (is
-   (Files/exists
+   (Files/exists        
     (:java-path
      (sut/resource-from-cp-or-fs
       "./test-resources"
@@ -53,13 +53,27 @@
            "./not-existing-so-load-from-cp" "" ".gitkeep")))
   (is (=
        {:virtual-path    "js/subdir"
-        :source-type   :classpath
+        :source-type   :java-classpath-filesystem
         :resource-type :dir}
        (ftt/filter-object
         (sut/resource-from-cp-or-fs
          "./not-existing-so-load-from-cp"
          "templates/themes/bootstrap4-test"
          "js/subdir")))))
+
+(deftest test-list-entries-for-dir
+  (is (= ["subdummy.js", "test.js"]
+         (seq
+          (sut/list-entries-for-dir (sut/resource-from-cp-or-fs
+                                     "./not-existing-so-load-from-cp"
+                                     "templates/themes/bootstrap4-test"
+                                     "js/subdir")))))
+  (is (= ["dummy-from-jar"]
+         (sut/list-entries-for-dir (sut/resource-from-cp-or-fs
+                                    "not-existing-filesystem-path"
+                                    ""
+                                    "dummy")))))
+
 
 (deftest test-get-resources-recursive
   (is (=
@@ -70,13 +84,13 @@
   ; add test here
   ; TODO: fix dir.list on jar
   (is (=
-       [{:virtual-path "dummy", :source-type :classpath, :resource-type :dir}
-        {:virtual-path "dummy/dummy_from_jar", :source-type :classpath, :resource-type :file}]
+       [{:virtual-path "dummy", :source-type :java-classpath-jar, :resource-type :dir}
+        {:virtual-path "dummy/dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
        (map ftt/filter-object
             (sut/get-resources-recursive "not-existing" "" ["dummy"]))))
   (is (=
        [{:virtual-path   "js/dummy.js"
-         :source-type   :classpath
+         :source-type   :java-classpath-filesystem
          :resource-type :file}]
        (map ftt/filter-object
             (sut/get-resources-recursive
