@@ -29,10 +29,10 @@
 
 (def Resource
   {:virtual-path  VirtualPath
-   :uri           JavaUri
-   :java-path     JavaPath
    :source-type   SourceType
-   :resource-type ResourceType})
+   :resource-type ResourceType
+   :java-uri      JavaUri
+   :java-path     JavaPath})
 
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
@@ -44,7 +44,7 @@
     source-type :- SourceType
     resource-type :- ResourceType]
    {:virtual-path    virtual-path
-    :uri           uri
+    :java-uri            uri
     :java-path     java-path
     :source-type   source-type
     :resource-type resource-type})
@@ -52,7 +52,7 @@
     java-path :- JavaPath
     source-type :- SourceType]
    {:virtual-path    virtual-path
-    :uri           (.toUri java-path)
+    :java-uri            (.toUri java-path)
     :java-path     java-path
     :source-type   source-type
     :resource-type (cond

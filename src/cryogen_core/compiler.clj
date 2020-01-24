@@ -545,7 +545,7 @@
         file-resource-prefix "resources/"
         file-target-prefix "target/"
         resource-prefix (str "templates/themes/" theme)
-        resource-file-uri (:uri
+        resource-file-uri (:java-uri
                            (cp-io/resource-from-cp-or-fs
                             file-resource-prefix resource-prefix ""
                             :from-cp false))
