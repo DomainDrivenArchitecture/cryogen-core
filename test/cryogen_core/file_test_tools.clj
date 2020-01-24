@@ -19,6 +19,6 @@
 
 (defn filter-object
   [e]
-  {:short-path    (:short-path e)
+  {:virtual-path  (:virtual-path e)
    :source-type   (:source-type e)
    :resource-type (:resource-type e)})

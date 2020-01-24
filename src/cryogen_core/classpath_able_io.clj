@@ -21,15 +21,15 @@
 
 (def Prefix s/Str)
 
-(def ResourceUri s/Any) ; java.net.URI
+(def JavaUri s/Any) ; java.net.URI
 
-(def ShortPath s/Str)
+(def VirtualPath s/Str)
 
 (def JavaPath s/Any) ; java.nio.Path
 
 (def Resource
-  {:short-path    ShortPath
-   :uri           ResourceUri
+  {:virtual-path  VirtualPath
+   :uri           JavaUri
    :java-path     JavaPath
    :source-type   SourceType
    :resource-type ResourceType})
@@ -38,20 +38,20 @@
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
 
 (s/defn create-resource :- Resource
-  ([short-path :- ShortPath
-    uri :- ResourceUri
+  ([virtual-path :- VirtualPath
+    uri :- JavaUri
     java-path :- JavaPath
     source-type :- SourceType
     resource-type :- ResourceType]
-   {:short-path    short-path
+   {:virtual-path    virtual-path
     :uri           uri
     :java-path     java-path
     :source-type   source-type
     :resource-type resource-type})
-  ([short-path :- ShortPath
+  ([virtual-path :- VirtualPath
     java-path :- JavaPath
     source-type :- SourceType]
-   {:short-path    short-path
+   {:virtual-path    virtual-path
     :uri           (.toUri java-path)
     :java-path     java-path
     :source-type   source-type
@@ -90,7 +90,7 @@
        (#(st/replace % #"/+" "/"))))
 
 (s/defn init-file-system
-  [resource-uri :- ResourceUri]
+  [resource-uri :- JavaUri]
   (let [filesystem-uri (URI. (first (st/split (.toString resource-uri) #"!")))]
     (try 
       (FileSystems/getFileSystem filesystem-uri)
@@ -99,7 +99,7 @@
 
 ; contains either a jar or a file
 (s/defn path-from-cp ;  :- JavaPath
-  [resource-path :- ShortPath]
+  [resource-path :- VirtualPath]
   (try
     (let [resource-uri (.toURI (io/resource resource-path))] ; check if contains jar:
       (when (= (.getScheme resource-uri) "jar")
@@ -110,7 +110,7 @@
       nil)))
 
 (s/defn path-from-fs ;  :- JavaPath
-  [full-path :- ShortPath]
+  [full-path :- VirtualPath]
   (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
     (try
       (when (Files/exists path-from-fs no-link-option)
@@ -120,8 +120,8 @@
 
 (defn resource-from-cp-or-fs ; :- Resource 
   [fs-prefix ; :- Prefix
-   base-path ; :- ShortPath
-   resource-path ; :- ShortPath
+   base-path ; :- VirtualPath
+   resource-path ; :- VirtualPath
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -144,8 +144,8 @@
 
 (defn path-from-cp-or-fs ; :- JavaPath
   [fs-prefix ; :- Prefix
-   base-path ; :- ShortPath
-   resource-path; :- ShortPath
+   base-path ; :- VirtualPath
+   resource-path; :- VirtualPath
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -158,8 +158,8 @@
 
 (defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
-   base-path ;:- ShortPath
-   paths ;:- [ShortPath]
+   base-path ;:- VirtualPath
+   paths ;:- [VirtualPath]
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
@@ -190,14 +190,14 @@
                    result))))
       result)))
 
-(defn get-resource-paths-recursive ;:- [ShortPath]
+(defn get-resource-paths-recursive ;:- [VirtualPath]
   [fs-prefix ;:- Prefix
-   base-path ;:- ShortPath
-   paths ;:- [ShortPath]
+   base-path ;:- VirtualPath
+   paths ;:- [VirtualPath]
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (map #(:short-path %)
+  (map #(:virtual-path %)
        (get-resources-recursive
         fs-prefix base-path paths
         :from-cp from-cp
@@ -205,23 +205,23 @@
 
 ; TODO: Add files to keep
 (s/defn delete-resource-recursive!
-  [short-path :- s/Str]
+  [virtual-path :- s/Str]
   (let [resource-paths
         (reverse (get-resource-paths-recursive
                   (str (user-dir) "/")
-                  short-path 
+                  virtual-path 
                   [""] 
                   :from-cp false))]
     (doseq [resource-path resource-paths]
-      (Files/delete (absolut-path short-path resource-path))
+      (Files/delete (absolut-path virtual-path resource-path))
       )))
 
 ; TODO: add ignore patterns filtering
 (defn copy-resources!
   [fs-prefix ;:- Prefix
-   base-path ;:- ShortPath
-   source-paths ;:- [ShortPath]
-   target-path  ;:- ShortPath
+   base-path ;:- VirtualPath
+   source-paths ;:- [VirtualPath]
+   target-path  ;:- VirtualPath
    ignore-patterns ;:- s/Str
    ]
   (let [resource-paths
@@ -243,11 +243,11 @@
 
 (defn distinct-resources-by-path
   [resources]
-  (loop [paths (set (map :short-path resources))
+  (loop [paths (set (map :virtual-path resources))
          resources resources
          acc []]
     (cond (empty? resources) acc
-          (contains? paths (:short-path (first resources))) (recur (disj paths (:short-path (first resources)))
+          (contains? paths (:virtual-path (first resources))) (recur (disj paths (:virtual-path (first resources)))
                                                              (rest resources)
                                                              (conj acc (first resources)))
           :else (recur paths (rest resources) acc))))

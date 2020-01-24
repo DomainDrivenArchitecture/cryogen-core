@@ -52,7 +52,7 @@
    (some? (sut/resource-from-cp-or-fs
            "./not-existing-so-load-from-cp" "" ".gitkeep")))
   (is (=
-       {:short-path    "js/subdir"
+       {:virtual-path    "js/subdir"
         :source-type   :classpath
         :resource-type :dir}
        (ftt/filter-object
@@ -70,12 +70,12 @@
   ; add test here
   ; TODO: fix dir.list on jar
   (is (=
-       [{:short-path "dummy", :source-type :classpath, :resource-type :dir}
-        {:short-path "dummy/dummy_from_jar", :source-type :classpath, :resource-type :file}]
+       [{:virtual-path "dummy", :source-type :classpath, :resource-type :dir}
+        {:virtual-path "dummy/dummy_from_jar", :source-type :classpath, :resource-type :file}]
        (map ftt/filter-object
             (sut/get-resources-recursive "not-existing" "" ["dummy"]))))
   (is (=
-       [{:short-path   "js/dummy.js"
+       [{:virtual-path   "js/dummy.js"
          :source-type   :classpath
          :resource-type :file}]
        (map ftt/filter-object
@@ -89,7 +89,7 @@
        ["js/subdir"
         "js/subdir/subdummy.js"
         "js/subdir/test.js"]
-       (sort (map :short-path
+       (sort (map :virtual-path
                   (sut/get-resources-recursive
                    "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
   (is (=
@@ -104,18 +104,18 @@
         "./js/subdir"
         "./js/subdir/subdummy.js"
         "./js/subdir/test.js"]
-       (sort (map :short-path
+       (sort (map :virtual-path
                   (sut/get-resources-recursive
                    "" "templates/themes/bootstrap4-test" ["."]))))))
 
 (deftest test-distinct-resources-by-path
-  (is (= [{:short-path "pages/test"}
-          {:short-path "pages/test1"}
-          {:short-path "pages/test2"}]
-         (sut/distinct-resources-by-path [{:short-path "pages/test"}
-                                          {:short-path "pages/test1"}
-                                          {:short-path "pages/test2"}
-                                          {:short-path "pages/test1"}]))))
+  (is (= [{:virtual-path "pages/test"}
+          {:virtual-path "pages/test1"}
+          {:virtual-path "pages/test2"}]
+         (sut/distinct-resources-by-path [{:virtual-path "pages/test"}
+                                          {:virtual-path "pages/test1"}
+                                          {:virtual-path "pages/test2"}
+                                          {:virtual-path "pages/test1"}]))))
 
 (deftest test-filter-for-ignore-patterns
   (is (=
