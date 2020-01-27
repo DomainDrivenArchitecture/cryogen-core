@@ -165,22 +165,27 @@
     (when (some? resource)
       (:java-path resource))))
 
+(defn remove-first-path-item
+  [seq-of-paths]
+  (let [fun (fn [str-arg] (st/join "/" (rest (st/split str-arg #"/"))))]
+    (map fun seq-of-paths)))
+
 (s/defn
   list-entries-for-dir ;:- [VirtualPath]
   [resource :- Resource]
   (if (= :java-classpath-jar (:source-type resource))
-    (filter
-     (fn [je] (and (st/starts-with? je (:virtual-path resource))
-                   (not (= je (str (:virtual-path resource) "/")))))
-     (map #(.getName ^JarEntry %)
-          (enumeration-seq
-           (.entries
-            (JarFile.
-             (.toFile
-              (Paths/get
-               (URI.
-                (.getSchemeSpecificPart
-                 (filesystem-uri (:java-uri resource)))))))))))
+    (remove-first-path-item (filter
+                             (fn [je] (and (st/starts-with? je (:virtual-path resource))
+                                           (not (= je (str (:virtual-path resource) "/")))))
+                             (map #(.getName ^JarEntry %)
+                                  (enumeration-seq
+                                   (.entries
+                                    (JarFile.
+                                     (.toFile
+                                      (Paths/get
+                                       (URI.
+                                        (.getSchemeSpecificPart
+                                         (filesystem-uri (:java-uri resource))))))))))))
     ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
   (.list (.toFile (:java-path resource)))))
 
