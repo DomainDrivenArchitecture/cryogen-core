@@ -28,3 +28,7 @@
   {:virtual-path  (:virtual-path e)
    :source-type   (:source-type e)
    :resource-type (:resource-type e)})
+
+(defn filter-path
+  [e]
+  (:virtual-path e))
