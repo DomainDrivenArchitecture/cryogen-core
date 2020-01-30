@@ -8,10 +8,16 @@
 
 (ns cryogen-core.file-test-tools
   (:require [clojure.java.io :as io]
-            [schema.core :as s]))
+            [schema.core :as s])
+  (:import [java.nio.file Files LinkOption]))
+
+(def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
+
+(defn verify-path-exists [path]
+  (Files/exists path no-link-option))
 
 (defn verify-file-exists [path]
-  (.exists (io/file path)))
+  (io/file path))
 
 (defn verify-dir-exists [path]
   (and (verify-file-exists path)

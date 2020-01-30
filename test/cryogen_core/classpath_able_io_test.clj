@@ -30,17 +30,17 @@
            ""
             "dummy")))
   (is
-   (Files/exists        
+   (ftt/verify-path-exists        
     (:java-path
      (sut/resource-from-cp-or-fs
       "./test-resources"
       "templates/themes/bootstrap4-test"
-      "js")) sut/no-link-option))
+      "js"))))
   (is
-   (Files/exists
+   (ftt/verify-path-exists
     (:java-path
      (sut/resource-from-cp-or-fs
-      "./" "" ".gitkeep")) sut/no-link-option))
+      "./" "" ".gitkeep"))))
   (is
    (some? (sut/resource-from-cp-or-fs
            "./test-resources"
