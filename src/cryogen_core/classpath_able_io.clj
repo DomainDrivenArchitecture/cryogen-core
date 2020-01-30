@@ -177,6 +177,15 @@
                          (not (= element norm-path-to-filter-for))))
       elements-list))))
 
+(defn jar-file-for-resource
+  [resource]
+  (JarFile.
+   (.toFile
+    (Paths/get
+     (URI.
+      (.getSchemeSpecificPart
+       (filesystem-uri (:java-uri resource))))))))
+
  (s/defn
    list-entries-for-dir ;:- [VirtualPath]
    [resource :- Resource]
@@ -186,12 +195,7 @@
        (map #(.getName ^JarEntry %)
             (enumeration-seq
              (.entries
-              (JarFile.
-               (.toFile
-                (Paths/get
-                 (URI.
-                  (.getSchemeSpecificPart
-                   (filesystem-uri (:java-uri resource)))))))))))
+              (jar-file-for-resource resource)))))
      (.list (.toFile (:java-path resource)))))
 
  (defn get-resources-recursive ;:- [Resource]
