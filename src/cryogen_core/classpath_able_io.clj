@@ -12,7 +12,7 @@
             [schema.core :as s])
   (:import [java.net URI]
            [java.util.jar JarFile JarEntry]
-           [java.nio.file FileSystems Paths Files SimpleFileVisitor LinkOption StandardCopyOption]
+           [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
 ; -------------------- Domain Definition ------------------------------
@@ -74,14 +74,14 @@
   (filter #(not (re-matches ignore-patterns %)) source-list))
 
 ; ------------------- infra ---------------------------------
-(defn current-path [])
-
 (defn user-dir []
   (java.lang.System/getProperty "user.dir"))
 
 (defn absolut-path
   [& path-elements]
-  (let [path (Paths/get (first path-elements) (into-array String (rest path-elements)))]
+  (let [path (.normalize 
+              (Paths/get (first path-elements)
+                         (into-array String (rest path-elements))))]
     (if (.isAbsolute path)
       path
       (Paths/get (user-dir) (into-array String path-elements)))))
