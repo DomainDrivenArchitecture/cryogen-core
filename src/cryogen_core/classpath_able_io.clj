@@ -86,6 +86,7 @@
       path
       (Paths/get (user-dir) (into-array String path-elements)))))
 
+; TODO replace this fn ?
 (defn path
   "Creates path from given parts, ignore empty elements"
   [& path-parts]
@@ -165,121 +166,125 @@
     (when (some? resource)
       (:java-path resource))))
 
-(defn remove-first-path-item
-  [seq-of-paths]
-  (let [fun (fn [str-arg] (st/join "/" (rest (st/split str-arg #"/"))))]
-    (map fun seq-of-paths)))
+(defn filter-and-remove-for-dir
+  [path-to-filter-for
+   elements-list]
+  (let [norm-path-to-filter-for  (str path-to-filter-for "/")]
+    (map 
+     #(subs % (count norm-path-to-filter-for))
+     (filter
+      (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
+                         (not (= element norm-path-to-filter-for))))
+      elements-list))))
 
-(s/defn
-  list-entries-for-dir ;:- [VirtualPath]
-  [resource :- Resource]
-  (if (= :java-classpath-jar (:source-type resource))
-    (remove-first-path-item (filter
-                             (fn [je] (and (st/starts-with? je (:virtual-path resource))
-                                           (not (= je (str (:virtual-path resource) "/")))))
-                             (map #(.getName ^JarEntry %)
-                                  (enumeration-seq
-                                   (.entries
-                                    (JarFile.
-                                     (.toFile
-                                      (Paths/get
-                                       (URI.
-                                        (.getSchemeSpecificPart
-                                         (filesystem-uri (:java-uri resource))))))))))))
-    ; Bsp-Code: https://github.com/clojure/java.classpath/blob/c10fc96a8ff98db4eb925a13ef0f5135ad8dacc6/src/main/clojure/clojure/java/classpath.clj#L50
-  (.list (.toFile (:java-path resource)))))
+ (s/defn
+   list-entries-for-dir ;:- [VirtualPath]
+   [resource :- Resource]
+   (if (= :java-classpath-jar (:source-type resource))
+     (filter-and-remove-for-dir
+       (:virtual-path resource)
+       (map #(.getName ^JarEntry %)
+            (enumeration-seq
+             (.entries
+              (JarFile.
+               (.toFile
+                (Paths/get
+                 (URI.
+                  (.getSchemeSpecificPart
+                   (filesystem-uri (:java-uri resource)))))))))))
+     (.list (.toFile (:java-path resource)))))
 
-(defn get-resources-recursive ;:- [Resource]
-  [fs-prefix ;:- Prefix
-   base-path ;:- VirtualPath
-   paths ;:- [VirtualPath]
-   & {:keys [from-cp from-fs]
-      :or   {from-cp true
-             from-fs true}}]
-  (loop [paths  paths
-         result []]
-    (if (not (empty? paths))
-      (do
-        (let [path-to-work-with     (first paths)
-              resource-to-work-with (resource-from-cp-or-fs
-                                     fs-prefix
-                                     base-path
-                                     path-to-work-with
-                                     :from-cp from-cp
-                                     :from-fs from-fs)
-              result                (into result
-                                          [resource-to-work-with])]
+ (defn get-resources-recursive ;:- [Resource]
+   [fs-prefix ;:- Prefix
+    base-path ;:- VirtualPath
+    paths ;:- [VirtualPath]
+    & {:keys [from-cp from-fs]
+       :or   {from-cp true
+              from-fs true}}]
+   (loop [paths  paths
+          result []]
+     (if (not (empty? paths))
+       (do
+         (let [path-to-work-with     (first paths)
+               resource-to-work-with (resource-from-cp-or-fs
+                                      fs-prefix
+                                      base-path
+                                      path-to-work-with
+                                      :from-cp from-cp
+                                      :from-fs from-fs)
+               result                (into result
+                                           [resource-to-work-with])]
           ; (println path-to-work-with)
           ; (println (:java-path resource-to-work-with))
-          (cond
-            (nil? resource-to-work-with) []
-            (is-file? resource-to-work-with)
-            (recur (drop 1 paths) result)
-            :else
-            (recur (into (drop 1 paths)
-                         (map #(str path-to-work-with "/" %)
-                              (list-entries-for-dir resource-to-work-with))) 
-                   result))))
-      result)))
+           (cond
+             (nil? resource-to-work-with) []
+             (is-file? resource-to-work-with)
+             (recur (drop 1 paths) result)
+             :else
+             (recur (into (drop 1 paths)
+                          (map #(str path-to-work-with "/" %)
+                               (list-entries-for-dir resource-to-work-with)))
+                    result))))
+       result)))
 
-(defn get-resource-paths-recursive ;:- [VirtualPath]
-  [fs-prefix ;:- Prefix
-   base-path ;:- VirtualPath
-   paths ;:- [VirtualPath]
-   & {:keys [from-cp from-fs]
-      :or   {from-cp true
-             from-fs true}}]
-  (map #(:virtual-path %)
-       (get-resources-recursive
-        fs-prefix base-path paths
-        :from-cp from-cp
-        :from-fs from-fs)))
+ (defn get-resource-paths-recursive ;:- [VirtualPath]
+   [fs-prefix ;:- Prefix
+    base-path ;:- VirtualPath
+    paths ;:- [VirtualPath]
+    & {:keys [from-cp from-fs]
+       :or   {from-cp true
+              from-fs true}}]
+   (map #(:virtual-path %)
+        (get-resources-recursive
+         fs-prefix base-path paths
+         :from-cp from-cp
+         :from-fs from-fs)))
 
 ; TODO: Add files to keep
-(s/defn delete-resource-recursive!
-  [virtual-path :- s/Str]
-  (let [resource-paths
-        (reverse (get-resource-paths-recursive
-                  (str (user-dir) "/")
-                  virtual-path 
-                  [""] 
-                  :from-cp false))]
-    (doseq [resource-path resource-paths]
+ (s/defn delete-resource-recursive!
+   [virtual-path :- s/Str]
+   (let [resource-paths
+         (reverse (get-resource-paths-recursive
+                   (str (user-dir) "/")
+                   virtual-path
+                   [""]
+                   :from-cp false))]
+     (doseq [resource-path resource-paths]
       (Files/delete (absolut-path virtual-path resource-path))
       )))
-
+ 
 ; TODO: add ignore patterns filtering
-(defn copy-resources!
-  [fs-prefix ;:- Prefix
-   base-path ;:- VirtualPath
-   source-paths ;:- [VirtualPath]
-   target-path  ;:- VirtualPath
-   ignore-patterns ;:- s/Str
-   ]
-  (let [resource-paths
-        (get-resource-paths-recursive fs-prefix base-path source-paths)]
-    (if (empty? resource-paths)
-      (throw (IllegalArgumentException. (str "resource " resource-paths ", "
-                                             source-paths " not found")))
-      (doseq [resource-path resource-paths]
-        (let [target-file (absolut-path target-path resource-path)
-              source-file (path-from-cp-or-fs
-                           fs-prefix
-                           base-path
-                           resource-path)]
-          (when (Files/isDirectory source-file no-link-option)
-            (Files/createDirectories target-file (into-array FileAttribute [])))
-          (when (Files/isRegularFile source-file no-link-option)
-            (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
+ (defn copy-resources!
+   [fs-prefix ;:- Prefix
+    base-path ;:- VirtualPath
+    source-paths ;:- [VirtualPath]
+    target-path  ;:- VirtualPath
+    ignore-patterns ;:- s/Str
+    ]
+   (let [resource-paths
+         (get-resource-paths-recursive fs-prefix base-path source-paths)]
+     (if (empty? resource-paths)
+       (throw (IllegalArgumentException. (str "resource " resource-paths ", "
+                                              source-paths " not found")))
+       (doseq [resource-path resource-paths]
+         (let [target-file (absolut-path target-path resource-path)
+               source-file (path-from-cp-or-fs
+                            fs-prefix
+                            base-path
+                            resource-path)]
+           (when (Files/isDirectory source-file no-link-option)
+             (Files/createDirectories target-file (into-array FileAttribute [])))
+           (when (Files/isRegularFile source-file no-link-option)
+             (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
             ))))))
-
-(defn distinct-resources-by-path
-  [resources]
-  (loop [paths (set (map :virtual-path resources))
-         resources resources
-         acc []]
-    (cond (empty? resources) acc
-          (contains? paths (:virtual-path (first resources))) (recur (disj paths (:virtual-path (first resources)))
-                                                             (rest resources)
-                                                             (conj acc (first resources)))
-          :else (recur paths (rest resources) acc))))
+ 
+ (defn distinct-resources-by-path
+   [resources]
+   (loop [paths (set (map :virtual-path resources))
+          resources resources
+          acc []]
+     (cond (empty? resources) acc
+           (contains? paths (:virtual-path (first resources))) (recur (disj paths (:virtual-path (first resources)))
+                                                                      (rest resources)
+                                                                      (conj acc (first resources)))
+           :else (recur paths (rest resources) acc))))
