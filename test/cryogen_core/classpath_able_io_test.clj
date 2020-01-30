@@ -77,15 +77,17 @@
   (is (=
        []
        (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
-  ; TODO: one dummy from jar and one dummy from cp-filesystem and one from filesystem
-  ; get resources and see all
-  ; add test here
-  ; TODO: fix dir.list on jar
   (is (=
        [{:virtual-path "dummy", :source-type :java-classpath-jar, :resource-type :dir}
         {:virtual-path "dummy/dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
        (map ftt/filter-object
             (sut/get-resources-recursive "not-existing" "" ["dummy"]))))
+  (is (=
+       [{:virtual-path "dummy", :source-type :java-classpath-jar, :resource-type :dir}
+        {:virtual-path "dummy/dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}
+        {:virtual-path "dummy/dummy_from_fs", :source-type :java-classpath-jar, :resource-type :file}]
+       (map ftt/filter-object
+            (sut/get-resources-recursive "fs_root" "" ["dummy"]))))
   (is (=
        [{:virtual-path   "js/dummy.js"
          :source-type   :java-classpath-filesystem
