@@ -11,9 +11,7 @@
             [clojure.java.io :as io]
             [schema.core :as s]
             [cryogen-core.file-test-tools :as ftt]
-            [cryogen-core.classpath-able-io :as sut])
-  (:import [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
-           [java.nio.file.attribute FileAttribute]))
+            [cryogen-core.classpath-able-io :as sut]))
 
 (s/set-fn-validation! true)
 
