@@ -15,9 +15,17 @@
 
 (def fs-root "fs_root")
 
-(deftest test-path
+(deftest test-absolut-path
   (is
-   (sut/path (str fs-root "/dummy/dummy_from_fs")))
+   (= (str (sut/user-dir) "/" fs-root "/dummy/dummy_from_fs")
+      (.toString (sut/absolut-path fs-root "/dummy/dummy_from_fs"))))
+  (is
+   (= (str (sut/user-dir) "/" fs-root "/not-existing")
+      (.toString (sut/absolut-path (str fs-root "/not-existing"))))))
+
+(deftest test-path-if-exists
+  (is
+   (sut/path-if-exists (str fs-root "/dummy/dummy_from_fs")))
   (is
    (= nil 
-      (sut/path (str fs-root "/not-existing")))))
+      (sut/path-if-exists (str fs-root "/not-existing")))))

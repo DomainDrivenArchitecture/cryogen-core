@@ -17,19 +17,25 @@
 
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
-(def follow-link-option (into-array []))
+(def follow-link-option (into-array LinkOption []))
 
 (defn user-dir []
   (java.lang.System/getProperty "user.dir"))
 
-(s/defn path
+(defn absolut-path
+  [& path-elements]
+  (let [path (.normalize
+              (Paths/get (first path-elements)
+                         (into-array String (rest path-elements))))]
+    (if (.isAbsolute path)
+      path
+      (Paths/get (user-dir) (into-array String path-elements)))))
+
+(defn path-if-exists
   [full-path]
   (let [path-from-fs (Paths/get (URI. (str "file://" (user-dir) "/" full-path)))]
-    (try
-      (when (Files/exists path-from-fs follow-link-option)
-        path-from-fs)
-      (catch Exception e
-        nil))))
+    (when (Files/exists path-from-fs follow-link-option)
+        path-from-fs)))
 
 (defn create-resource
   ([virtual-path
