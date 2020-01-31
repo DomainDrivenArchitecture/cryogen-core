@@ -37,32 +37,20 @@
     (when (Files/exists path-from-fs follow-link-option)
         path-from-fs)))
 
-(defn create-resource
-  ([virtual-path
-    java-path]
-   {:virtual-path  virtual-path
-    :java-uri      (.toUri java-path)
-    :java-path     java-path
-    :source-type   :filesystem
-    :resource-type (cond
-                     (Files/isDirectory java-path no-link-option) :dir
-                     (Files/isRegularFile java-path no-link-option) :file
-                     :else :unknown)}))
+(defn source-type
+  []
+  :filesystem)
+
+(defn resource-type
+  [java-path]
+  (cond
+    (Files/isDirectory java-path follow-link-option) :dir
+    (Files/isRegularFile java-path follow-link-option) :file
+    :else :unknown))
 
 ; ------------------- infra ---------------------------------
-(defn user-dir []
-  (java.lang.System/getProperty "user.dir"))
-
-(defn path-from-fs
-  [full-path]
-  (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
-    (try
-      (when (Files/exists path-from-fs no-link-option)
-        path-from-fs)
-      (catch Exception e
-        nil))))
 
  (defn
    list-entries-for-dir
-   [resource]
-   (.list (.toFile (:java-path resource))))
+   [java-path]
+   (.list (.toFile java-path)))
