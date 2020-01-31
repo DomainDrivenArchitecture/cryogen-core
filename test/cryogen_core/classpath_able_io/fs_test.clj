@@ -17,4 +17,7 @@
 
 (deftest test-path
   (is
-   (sut/path (str fs-root "dummy/dummy_from_fs"))))
+   (sut/path (str fs-root "/dummy/dummy_from_fs")))
+  (is
+   (= nil 
+      (sut/path (str fs-root "/not-existing")))))

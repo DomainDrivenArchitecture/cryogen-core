@@ -17,12 +17,16 @@
 
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
+(def follow-link-option (into-array []))
+
+(defn user-dir []
+  (java.lang.System/getProperty "user.dir"))
 
 (s/defn path
   [full-path]
-  (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
+  (let [path-from-fs (Paths/get (URI. (str "file://" (user-dir) "/" full-path)))]
     (try
-      (when (Files/exists path-from-fs no-link-option)
+      (when (Files/exists path-from-fs follow-link-option)
         path-from-fs)
       (catch Exception e
         nil))))
