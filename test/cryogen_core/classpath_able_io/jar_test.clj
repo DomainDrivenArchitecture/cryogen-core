@@ -18,3 +18,10 @@
   (is
    (sut/is-from-classpath-jar? (.toURI (io/resource "dummy"))))
   )
+
+(deftest test-path-if-exists
+  (is
+   (sut/path-if-exists "dummy/dummy_from_jar")))
+  (is
+   (= nil
+      (sut/path-if-exists "not-existing")))
