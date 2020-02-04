@@ -28,7 +28,7 @@
 
 (deftest test-get-resources
   (is
-   (= [{:virtual-path "dummy" :source-type :filesystem :resource-type :dir}
-       {:virtual-path "dummy/dummy_from_jar" :source-type :filesystem :resource-type :file}]
+   (= [{:virtual-path "dummy" :source-type :java-classpath-jar :resource-type :dir}
+       {:virtual-path "dummy/dummy_from_jar" :source-type :java-classpath-jar :resource-type :file}]
       (map ftt/filter-object
        (sut/get-resources "" ["dummy"])))))

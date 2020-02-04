@@ -52,7 +52,11 @@
   [& path-elements ;:- VirtualPath
    ]
   (try
-    (let [resource-uri (.toURI (io/resource (st/join "/" path-elements)))]
+    (let [resource-uri 
+          (.toURI (io/resource 
+                   (st/join "/" 
+                            (filter #(not (empty? %)) 
+                                    path-elements))))]
       (when (is-from-classpath-jar? resource-uri)
         (init-file-system resource-uri))
       ;; TODO: hier steckt auch eine "from-fs-cp" funktionalität drinne
@@ -91,6 +95,7 @@
          (.entries
           (jar-file-for-resource resource))))))
 
+; TODO: Statt rekursion list-entries-for-dir direkt verwenden
 (defn get-resources;:- [Resource]
    [base-path ;:- VirtualPath
     paths ;:- [VirtualPath]
@@ -101,8 +106,8 @@
        (do
          (let [path-to-work-with     (first paths)
                resource-to-work-with (create-resource
-                                      (path-if-exists base-path path-to-work-with)
-                                      path-to-work-with)
+                                      path-to-work-with
+                                      (path-if-exists base-path path-to-work-with))
                result                (into result
                                            [resource-to-work-with])]
            (cond
