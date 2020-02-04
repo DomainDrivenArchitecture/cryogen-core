@@ -29,3 +29,17 @@
   (is
    (= nil 
       (sut/path-if-exists (str fs-root "/not-existing")))))
+
+(deftest test-list-entries-for-dir
+  (is 
+   (= ["dummy_from_fs"]
+      (seq
+       (sut/list-entries-for-dir
+        (sut/create-resource "dummy" (sut/path-if-exists (str fs-root "/dummy"))))))))
+
+(deftest test-get-resources
+  (is
+   (= [{:virtual-path "dummy" :source-type :filesystem :resource-type :dir}
+       {:virtual-path "dummy/dummy_from_fs" :source-type :filesystem :resource-type :file}]
+      (map ftt/filter-object
+       (sut/get-resources fs-root "" ["dummy"])))))

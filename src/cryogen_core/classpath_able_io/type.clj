@@ -9,12 +9,7 @@
 (ns cryogen-core.classpath-able-io.type
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
-            [schema.core :as s]
-            [cryogen-core.classpath-able-io.fs :as fs])
-  (:import [java.net URI]
-           [java.util.jar JarFile JarEntry]
-           [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
-           [java.nio.file.attribute FileAttribute]))
+            [schema.core :as s]))
 
 ; -------------------- Domain Definition ------------------------------
 (def SourceType (s/enum :java-classpath-filesystem :java-classpath-jar :filesystem))
@@ -30,16 +25,10 @@
    :java-uri      JavaUri
    :java-path     JavaPath})
 
-(defn create-resource
-  ([virtual-path
-    java-path]
-   {:virtual-path  virtual-path
-    :java-uri      (.toUri java-path)
-    :java-path     java-path
-    :source-type   (fs/source-type)
-    :resource-type (fs/resource-type java-path)}))
+(s/defn is-file? :- s/Bool
+  [resource :- Resource]
+  (= :file (:resource-type resource)))
 
-(defn
-  list-entries-for-dir
-  [resource]
-  (fs/list-entries-for-dir (:java-path resource)))
+(s/defn is-dir? :- s/Bool
+  [resource :- Resource]
+  (= :dir (:resource-type resource)))
