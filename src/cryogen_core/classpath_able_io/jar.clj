@@ -48,6 +48,7 @@
     (catch Exception e
       (FileSystems/newFileSystem (filesystem-uri resource-uri) {}))))
 
+; (path-if-exists "") => ".../test"
 (defn path-if-exists ;:- JavaPath
   [& path-elements ;:- VirtualPath
    ]
@@ -66,15 +67,17 @@
       nil)))
 
 (defn filter-and-remove-for-dir
-  [path-to-filter-for
+  [base-path-to-filter-for
    elements-list]
-  (let [norm-path-to-filter-for  (str path-to-filter-for "/")]
-    (map 
-     #(subs % (count norm-path-to-filter-for))
-     (filter
-      (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
-                         (not (= element norm-path-to-filter-for))))
-      elements-list))))
+     (map
+      (fn [el]
+        (if (st/ends-with? el "/")
+          (st/join "" (drop-last el))
+          el))
+      (filter
+       (fn [element] (and (st/starts-with? element base-path-to-filter-for)
+                          (not (= element base-path-to-filter-for))))
+       elements-list)))
 
 (defn jar-file-for-resource
   [resource]
@@ -85,38 +88,33 @@
       (.getSchemeSpecificPart
        (filesystem-uri (:java-uri resource))))))))
 
+(defn list-entries ;:- [s/Str]
+  [resource ;:- Resource
+   ]
+  (map #(.getName ^JarEntry %)
+       (enumeration-seq
+        (.entries
+         (jar-file-for-resource resource)))))
+
 (defn list-entries-for-dir ;:- [VirtualPath]
   [resource ;:- Resource
    ]
   (filter-and-remove-for-dir
    (:virtual-path resource)
-   (map #(.getName ^JarEntry %)
-        (enumeration-seq
-         (.entries
-          (jar-file-for-resource resource))))))
+   (list-entries resource)))
 
-; TODO: Statt rekursion list-entries-for-dir direkt verwenden
 (defn get-resources;:- [Resource]
-   [base-path ;:- VirtualPath
-    paths ;:- [VirtualPath]
-    ]
-   (loop [paths  paths
-          result []]
-     (if (not (empty? paths))
-       (do
-         (let [path-to-work-with     (first paths)
-               resource-to-work-with (create-resource
-                                      path-to-work-with
-                                      (path-if-exists base-path path-to-work-with))
-               result                (into result
-                                           [resource-to-work-with])]
-           (cond
-             (nil? resource-to-work-with) []
-             (type/is-file? resource-to-work-with)
-             (recur (drop 1 paths) result)
-             :else
-             (recur (into (drop 1 paths)
-                          (map #(str path-to-work-with "/" %)
-                               (list-entries-for-dir resource-to-work-with)))
-                    result))))
-       result)))
+  [base-path ;:- VirtualPath
+   paths ;:- [VirtualPath]
+   ]
+  (let [entry-list (flatten 
+                    (map
+                     (fn [p]
+                       (let [p (if (empty? base-path) p (str base-path "/" p))]
+                         (list-entries-for-dir
+                          (create-resource p
+                                           (path-if-exists p)))))
+                     paths))]
+    (map (fn [entry]
+           (create-resource entry (path-if-exists entry)))
+         entry-list)))
