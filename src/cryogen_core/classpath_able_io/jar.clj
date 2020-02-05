@@ -69,15 +69,16 @@
 (defn filter-and-remove-for-dir
   [base-path-to-filter-for
    elements-list]
+  (let [norm-path-to-filter-for  (str base-path-to-filter-for "/")
+        start (count norm-path-to-filter-for)]
      (map
       (fn [el]
-        (if (st/ends-with? el "/")
-          (st/join "" (drop-last el))
-          el))
+        (let [end (if (st/ends-with? el "/") (dec (count el)) (count el))]
+          (subs el start end)))
       (filter
-       (fn [element] (and (st/starts-with? element base-path-to-filter-for)
-                          (not (= element base-path-to-filter-for))))
-       elements-list)))
+       (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
+                          (not (= element norm-path-to-filter-for))))
+       elements-list))))
 
 (defn jar-file-for-resource
   [resource]
@@ -97,24 +98,26 @@
          (jar-file-for-resource resource)))))
 
 (defn list-entries-for-dir ;:- [VirtualPath]
-  [resource ;:- Resource
+  [base-path ;:- VirtualPath
+   resource ;:- Resource
    ]
   (filter-and-remove-for-dir
-   (:virtual-path resource)
+   base-path
    (list-entries resource)))
 
 (defn get-resources;:- [Resource]
+  "base-path is sensible for getting the right jar from classpath. So base-path 
+   should be specific enough for the jar desired. Paths must not be empty."
   [base-path ;:- VirtualPath
    paths ;:- [VirtualPath]
    ]
   (let [entry-list (flatten 
                     (map
                      (fn [p]
-                       (let [p (if (empty? base-path) p (str base-path "/" p))]
-                         (list-entries-for-dir
-                          (create-resource p
-                                           (path-if-exists p)))))
+                       (list-entries-for-dir
+                        base-path
+                        (create-resource p (path-if-exists base-path p))))
                      paths))]
     (map (fn [entry]
-           (create-resource entry (path-if-exists entry)))
+           (create-resource entry (path-if-exists base-path entry)))
          entry-list)))
