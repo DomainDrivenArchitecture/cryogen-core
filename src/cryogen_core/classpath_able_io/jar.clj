@@ -24,15 +24,17 @@
   ([virtual-path ;:- VirtualPath
     java-path ;:- JavaPath
     ]
-   (let [java-uri (.toUri java-path)]
-     {:virtual-path  virtual-path
-      :java-uri      java-uri
-      :java-path     java-path
-      :source-type   :java-classpath-jar
-      :resource-type (cond
-                       (Files/isDirectory java-path fs/no-link-option) :dir
-                       (Files/isRegularFile java-path fs/no-link-option) :file
-                       :else :unknown)})))
+   (if (nil? java-path)
+     nil
+     (let [java-uri (.toUri java-path)]
+       {:virtual-path  virtual-path
+        :java-uri      java-uri
+        :java-path     java-path
+        :source-type   :java-classpath-jar
+        :resource-type (cond
+                         (Files/isDirectory java-path fs/no-link-option) :dir
+                         (Files/isRegularFile java-path fs/no-link-option) :file
+                         :else :unknown)}))))
 
 (defn
   filesystem-uri
@@ -101,9 +103,11 @@
   [base-path ;:- VirtualPath
    resource ;:- Resource
    ]
-  (filter-and-remove-for-dir
-   base-path
-   (list-entries resource)))
+  (if (nil? resource)
+    []
+    (filter-and-remove-for-dir
+     base-path
+     (list-entries resource))))
 
 (defn get-resources;:- [Resource]
   "base-path is sensible for getting the right jar from classpath. So base-path 

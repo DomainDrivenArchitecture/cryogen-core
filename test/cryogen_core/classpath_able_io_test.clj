@@ -78,16 +78,16 @@
        []
        (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
   (is (=
-       [{:virtual-path "dummy", :source-type :java-classpath-jar, :resource-type :dir}
-        {:virtual-path "dummy/dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
+       [{:virtual-path "dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
        (map ftt/filter-object
-            (sut/get-resources-recursive "not-existing" "" ["dummy"]))))
+            (sut/get-resources-recursive "not-existing" "dummy" ["dummy_from_jar"]))))
   (is (=
-       [{:virtual-path "dummy", :source-type :java-classpath-jar, :resource-type :dir}
-        {:virtual-path "dummy/dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}
-        {:virtual-path "dummy/dummy_from_fs", :source-type :java-classpath-jar, :resource-type :file}]
+       [{:virtual-path "dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}
+        {:virtual-path "dummy_from_fs", :source-type :filesystem, :resource-type :file}
+        {:virtual-path "dummy2", :source-type :filesystem, :resource-type :dir}
+        {:virtual-path "dummy2/dummy_common", :source-type :filesystem, :resource-type :file}]
        (map ftt/filter-object
-            (sut/get-resources-recursive "fs_root" "" ["dummy"]))))
+            (sut/get-resources-recursive "fs_root" "dummy" ["dummy_from_jar" "dummy_from_fs" "dummy2"]))))
   (is (=
        [{:virtual-path   "js/dummy.js"
          :source-type   :java-classpath-filesystem

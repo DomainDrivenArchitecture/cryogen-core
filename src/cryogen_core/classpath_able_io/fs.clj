@@ -36,14 +36,16 @@
 (defn create-resource
   ([virtual-path
     java-path]
-   {:virtual-path  virtual-path
-    :java-uri      (.toUri java-path)
-    :java-path     java-path
-    :source-type   :filesystem
-    :resource-type (cond
-                     (Files/isDirectory java-path follow-link-option) :dir
-                     (Files/isRegularFile java-path follow-link-option) :file
-                     :else :unknown)})
+   (if (nil? java-path)
+     nil
+     {:virtual-path  virtual-path
+      :java-uri      (.toUri java-path)
+      :java-path     java-path
+      :source-type   :filesystem
+      :resource-type (cond
+                       (Files/isDirectory java-path follow-link-option) :dir
+                       (Files/isRegularFile java-path follow-link-option) :file
+                       :else :unknown)}))
   ([fs-prefix
     base-path
     virtual-path]
@@ -70,7 +72,7 @@
              result                (into result
                                          [resource-to-work-with])]
            (cond
-             (nil? resource-to-work-with) []
+             (nil? resource-to-work-with) (recur (drop 1 paths) result)
              (type/is-file? resource-to-work-with)
              (recur (drop 1 paths) result)
              (type/is-dir? resource-to-work-with)
@@ -79,4 +81,4 @@
                                (list-entries-for-dir resource-to-work-with)))
                     result)
              :else []))
-       result)))
+       (remove nil? result))))
