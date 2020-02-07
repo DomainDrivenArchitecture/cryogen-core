@@ -6,12 +6,11 @@
 ;   the terms of this license.
 ;   You must not remove this notice, or any other, from this software.
 
-(ns cryogen-core.classpath-able-io.type
+(ns cryogen-core.classpath-able-io.this
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
             [schema.core :as s]))
 
-; -------------------- Domain Definition ------------------------------
 (def SourceType (s/enum :java-classpath-filesystem :java-classpath-jar :filesystem))
 (def ResourceType (s/enum :file :dir :unknown))
 (def Prefix s/Str)
@@ -32,3 +31,10 @@
 (s/defn is-dir? :- s/Bool
   [resource :- Resource]
   (= :dir (:resource-type resource)))
+
+(s/defn virtual-path-from-elements :- VirtualPath
+  [& path-elements ;:- VirtualPath
+   ]
+  (st/join "/"
+           (filter #(not (empty? %))
+                   path-elements)))

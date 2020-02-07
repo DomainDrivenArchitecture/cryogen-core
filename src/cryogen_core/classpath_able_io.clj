@@ -11,16 +11,24 @@
             [clojure.string :as st]
             [cryogen-core.classpath-able-io.fs :as fs]
             [cryogen-core.classpath-able-io.jar :as jar]
-            [cryogen-core.classpath-able-io.type :as type]
+            [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
   (:import [java.net URI]
            [java.util.jar JarFile JarEntry]
            [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
-(s/defn create-fs-resource :- type/Resource
-  ([virtual-path :- type/VirtualPath
-    java-path :- type/JavaPath]
+(def SourceType this/SourceType)
+(def ResourceType this/ResourceType)
+(def Prefix this/Prefix)
+(def JavaUri this/JavaUri) ; java.net.URI
+(def VirtualPath this/VirtualPath)
+(def JavaPath this/JavaPath) ; java.nio.Path
+(def Resource this/Resource)
+
+(s/defn create-fs-resource :- this/Resource
+  ([virtual-path :- this/VirtualPath
+    java-path :- this/JavaPath]
    {:virtual-path  virtual-path
     :java-uri      (.toUri java-path)
     :java-path     java-path
@@ -31,9 +39,9 @@
                      :else :unknown)}))
 
 
-(s/defn create-cp-resource :- type/Resource
-  ([virtual-path :- type/VirtualPath
-    java-path :- type/JavaPath]
+(s/defn create-cp-resource :- this/Resource
+  ([virtual-path :- this/VirtualPath
+    java-path :- this/JavaPath]
    (let [java-uri (.toUri java-path)]
      {:virtual-path  virtual-path
       :java-uri      java-uri
@@ -63,7 +71,7 @@
 
 ; contains either a jar or a file
 (s/defn path-from-cp ;:- JavaPath
-  [resource-path :- type/VirtualPath]
+  [resource-path :- this/VirtualPath]
   (try
     (let [resource-uri (.toURI (io/resource resource-path))]
       (when (jar/is-from-classpath-jar? resource-uri)
@@ -74,7 +82,7 @@
       nil)))
 
 (s/defn path-from-fs ;:- JavaPath
-  [full-path :- type/VirtualPath]
+  [full-path :- this/VirtualPath]
   (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
     (try
       (when (Files/exists path-from-fs fs/no-link-option)
@@ -133,7 +141,7 @@
 
 (s/defn
   list-entries-for-dir ;:- [VirtualPath]
-  [resource :- type/Resource]
+  [resource :- this/Resource]
   (if (= :java-classpath-jar (:source-type resource))
     (filter-and-remove-for-dir
      (:virtual-path resource)
@@ -167,7 +175,7 @@
           ; (println (:java-path resource-to-work-with))
           (cond
             (nil? resource-to-work-with) []
-            (type/is-file? resource-to-work-with)
+            (this/is-file? resource-to-work-with)
             (recur (drop 1 paths) result)
             :else
             (recur (into (drop 1 paths)

@@ -9,7 +9,7 @@
 (ns cryogen-core.classpath-able-io.jar
   (:require [clojure.java.io :as io]
             [clojure.string :as st]
-            [cryogen-core.classpath-able-io.type :as type]
+            [cryogen-core.classpath-able-io.this :as this]
             [cryogen-core.classpath-able-io.fs :as fs])
   (:import [java.net URI]
            [java.util.jar JarFile JarEntry]
@@ -61,10 +61,10 @@
                             (filter #(not (empty? %)) 
                                     path-elements))))]
       (when (is-from-classpath-jar? resource-uri)
-        (init-file-system resource-uri))
-      ;; TODO: hier steckt auch eine "from-fs-cp" funktionalität drinne
-      (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
-        (Paths/get resource-uri)))
+        (do
+          (init-file-system resource-uri)
+          (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
+            (Paths/get resource-uri)))))
     (catch Exception e
       nil)))
 

@@ -7,7 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io.fs
-  (:require [cryogen-core.classpath-able-io.type :as type])
+  (:require [cryogen-core.classpath-able-io.this :as type])
   (:import [java.net URI]
            [java.nio.file Paths Files LinkOption]))
 
