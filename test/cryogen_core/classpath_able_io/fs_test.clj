@@ -32,7 +32,7 @@
 
 (deftest test-list-entries-for-dir
   (is 
-   (= ["dummy_from_fs" "dummy2"]
+   (= ["dummy2" "dummy_from_fs"]
       (seq
        (sut/list-entries-for-dir
         (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy")))))))
