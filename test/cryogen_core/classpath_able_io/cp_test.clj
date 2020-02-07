@@ -13,3 +13,9 @@
             [cryogen-core.file-test-tools :as ftt]
             [cryogen-core.classpath-able-io.cp :as sut])
   (:import [java.net URI]))
+
+(deftest should-find-path-on-cp
+  (is
+   (sut/path-if-exists "dummy"))
+  (is
+   (sut/path-if-exists "dummy_only_in_cp_fs")))

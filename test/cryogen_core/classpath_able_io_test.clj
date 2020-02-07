@@ -19,10 +19,6 @@
 
 (def target "target/tmp")
 
-(deftest test-file-from-cp
-  (is
-   (sut/path-from-cp "dummy")))
-
 (deftest test-resource-from-cp-or-fs
   (is
    (some? (sut/resource-from-cp-or-fs

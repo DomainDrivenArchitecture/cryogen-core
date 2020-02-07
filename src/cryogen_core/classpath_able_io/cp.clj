@@ -7,7 +7,24 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io.cp
-  (:require [cryogen-core.classpath-able-io.type :as type])
+  (:require [clojure.java.io :as io]
+            [schema.core :as s]
+            [cryogen-core.classpath-able-io.this :as this]
+            [cryogen-core.classpath-able-io.fs :as fs]
+            [cryogen-core.classpath-able-io.jar :as jar])
   (:import [java.net URI]
            [java.nio.file Paths Files LinkOption]))
 
+(s/defn path-if-exists :- this/JavaPath
+  [& path-elements ;:- this/VirtualPath
+   ]
+  (try
+    (let [resource-uri
+          (.toURI (io/resource
+                   (apply this/virtual-path-from-elements path-elements)))]
+      (if (jar/is-from-classpath-jar? resource-uri)
+        (apply jar/path-if-exists path-elements)
+        (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
+          (Paths/get resource-uri))))
+    (catch Exception e
+      nil)))
