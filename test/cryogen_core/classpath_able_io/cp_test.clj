@@ -18,4 +18,6 @@
   (is
    (sut/path-if-exists "dummy"))
   (is
+   (sut/path-if-exists "dummy" "dummy_from_jar"))
+  (is
    (sut/path-if-exists "dummy_only_in_cp_fs")))

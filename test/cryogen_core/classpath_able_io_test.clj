@@ -19,42 +19,6 @@
 
 (def target "target/tmp")
 
-(deftest test-resource-from-cp-or-fs
-  (is
-   (some? (sut/resource-from-cp-or-fs
-           "not-existing-filesystem-path"
-           ""
-            "dummy")))
-  (is
-   (ftt/verify-path-exists        
-    (:java-path
-     (sut/resource-from-cp-or-fs
-      "./test-resources"
-      "templates/themes/bootstrap4-test"
-      "js"))))
-  (is
-   (ftt/verify-path-exists
-    (:java-path
-     (sut/resource-from-cp-or-fs
-      "./" "" ".gitkeep"))))
-  (is
-   (some? (sut/resource-from-cp-or-fs
-           "./test-resources"
-           "templates/themes/bootstrap4-test"
-           "js")))
-  (is
-   (some? (sut/resource-from-cp-or-fs
-           "./not-existing-so-load-from-cp" "" ".gitkeep")))
-  (is (=
-       {:virtual-path    "js/subdir"
-        :source-type   :java-classpath-filesystem
-        :resource-type :dir}
-       (ftt/filter-object
-        (sut/resource-from-cp-or-fs
-         "./not-existing-so-load-from-cp"
-         "templates/themes/bootstrap4-test"
-         "js/subdir")))))
-
 (deftest test-list-entries-for-dir
   (is (= ["subdummy.js", "test.js"]
          (seq
