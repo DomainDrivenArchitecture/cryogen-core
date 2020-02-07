@@ -35,7 +35,7 @@
    (= ["dummy2" "dummy_from_fs"]
       (seq
        (sut/list-entries-for-dir
-        (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy")))))))
+        (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy") :filesytem))))))
 
 (deftest test-get-resources
   (is
