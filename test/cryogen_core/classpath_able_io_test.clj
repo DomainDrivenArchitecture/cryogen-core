@@ -19,20 +19,6 @@
 
 (def target "target/tmp")
 
-(deftest test-list-entries-for-dir
-  (is (= ["subdummy.js", "test.js"]
-         (seq
-          (sut/list-entries-for-dir (sut/resource-from-cp-or-fs
-                                     "./not-existing-so-load-from-cp"
-                                     "templates/themes/bootstrap4-test"
-                                     "js/subdir")))))
-  (is (= ["dummy_from_jar"]
-         (sut/list-entries-for-dir (sut/resource-from-cp-or-fs
-                                    "not-existing-filesystem-path"
-                                    ""
-                                    "dummy")))))
-
-
 (deftest test-get-resources-recursive
   (is (=
        []
