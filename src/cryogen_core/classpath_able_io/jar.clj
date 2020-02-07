@@ -57,9 +57,7 @@
   (try
     (let [resource-uri 
           (.toURI (io/resource 
-                   (st/join "/" 
-                            (filter #(not (empty? %)) 
-                                    path-elements))))]
+                   (apply this/virtual-path-from-elements path-elements)))]
       (when (is-from-classpath-jar? resource-uri)
         (do
           (init-file-system resource-uri)

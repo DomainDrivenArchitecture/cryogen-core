@@ -7,7 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io.fs
-  (:require [cryogen-core.classpath-able-io.this :as type])
+  (:require [cryogen-core.classpath-able-io.this :as this])
   (:import [java.net URI]
            [java.nio.file Paths Files LinkOption]))
 
@@ -29,7 +29,14 @@
 
 (defn path-if-exists
   [& path-elements]
-  (let [path-from-fs (Paths/get (URI. (str "file://" (apply absolut-path path-elements))))]
+  (let [path-from-fs 
+        (Paths/get 
+         (URI. (str "file://" 
+                    (apply absolut-path 
+                           ;TODO: sollte hier nicht auch stehen:
+                           ;(apply this/virtual-path-from-elements path-elements)
+                           path-elements
+                           ))))]
     (when (Files/exists path-from-fs follow-link-option)
         path-from-fs)))
 
@@ -76,9 +83,9 @@
                                           [resource-to-work-with])]
           (cond
             (nil? resource-to-work-with) (recur (drop 1 paths) result)
-            (type/is-file? resource-to-work-with)
+            (this/is-file? resource-to-work-with)
             (recur (drop 1 paths) result)
-            (type/is-dir? resource-to-work-with)
+            (this/is-dir? resource-to-work-with)
             (recur (into (drop 1 paths)
                          (map #(str path-to-work-with "/" %)
                               (list-entries-for-dir resource-to-work-with)))
