@@ -31,6 +31,12 @@
        (map ftt/filter-object
             (sut/get-resources "dummy" ["dummy_from_jar"]))))
   (is (=
+       [{:virtual-path "dummy2", :source-type :java-classpath-jar, :resource-type :dir}
+        {:virtual-path "dummy2/dummy_common", :source-type :java-classpath-jar, :resource-type :file}
+        {:virtual-path "dummy2/dummy2_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
+       (map ftt/filter-object
+            (sut/get-resources "dummy" ["dummy2"]))))
+  (is (=
        [{:virtual-path "test_pages/home" :source-type :java-classpath-filesystem :resource-type :dir}
         {:virtual-path "test_pages/home/.gitkeep" :source-type :java-classpath-filesystem :resource-type :file}
         {:virtual-path "test_posts/home" :source-type :java-classpath-filesystem :resource-type :dir}

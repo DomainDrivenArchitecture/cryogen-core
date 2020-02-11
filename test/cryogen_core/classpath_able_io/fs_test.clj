@@ -33,16 +33,20 @@
 (deftest test-list-entries-for-dir
   (is 
    (= ["dummy2" "dummy_from_fs"]
-      (seq
-       (sut/list-entries-for-dir
-        (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy") :filesytem))))))
+      (sort 
+       (seq
+        (sut/list-entries-for-dir
+         (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy") :filesytem)))))))
 
+; TODO: sort output to get consistent tests on all systems. Yet, order of output maps can be different on different systems
 (deftest test-get-resources
+  ; TODO: base path should not be empty
   (is
    (= [{:virtual-path "dummy" :source-type :filesystem :resource-type :dir}
-       {:virtual-path "dummy/dummy_from_fs" :source-type :filesystem :resource-type :file}
        {:virtual-path "dummy/dummy2" :source-type :filesystem :resource-type :dir}
-       {:virtual-path "dummy/dummy2/dummy_common" :source-type :filesystem :resource-type :file}]
+       {:virtual-path "dummy/dummy2/dummy2_from_fs" :source-type :filesystem :resource-type :file}
+       {:virtual-path "dummy/dummy2/dummy_common" :source-type :filesystem :resource-type :file}
+       {:virtual-path "dummy/dummy_from_fs" :source-type :filesystem :resource-type :file}]
       (map ftt/filter-object
            (sut/get-resources fs-root "" ["dummy"]))))
   (is

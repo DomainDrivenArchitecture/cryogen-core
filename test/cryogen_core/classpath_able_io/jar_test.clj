@@ -30,4 +30,10 @@
   (is
    (= [{:virtual-path "dummy_from_jar" :source-type :java-classpath-jar :resource-type :file}]
       (map ftt/filter-object
-       (sut/get-resources "dummy" ["dummy_from_jar"])))))
+           (sut/get-resources "dummy" ["dummy_from_jar"]))))
+  (is
+   (= [{:virtual-path "dummy2", :source-type :java-classpath-jar, :resource-type :dir}
+       {:virtual-path "dummy2/dummy_common", :source-type :java-classpath-jar, :resource-type :file}
+       {:virtual-path "dummy2/dummy2_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
+      (map ftt/filter-object
+           (sut/get-resources "dummy" ["dummy2"])))))

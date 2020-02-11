@@ -11,6 +11,7 @@
             [clojure.string :as st]
             [cryogen-core.classpath-able-io.fs :as fs]
             [cryogen-core.classpath-able-io.jar :as jar]
+            [cryogen-core.classpath-able-io.cp :as cp]
             [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
   (:import [java.net URI]
@@ -194,7 +195,7 @@
       :or   {from-cp true
              from-fs true}}]
   (let [fs-resources (fs/get-resources fs-prefix base-path paths)
-        jar-resources (jar/get-resources base-path paths)])
+        cp-resources (cp/get-resources base-path paths)])
   )
 
  (defn get-resource-paths-recursive ;:- [VirtualPath]

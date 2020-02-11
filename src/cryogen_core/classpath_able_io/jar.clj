@@ -80,6 +80,13 @@
                           (not (= element norm-path-to-filter-for))))
        elements-list))))
 
+(defn filter-and-remove-for-path
+  [path-to-filter-for
+   virtual-paths-list]
+  (filter
+   #(st/starts-with? % path-to-filter-for)
+   virtual-paths-list))
+
 (defn jar-file-for-resource
   [resource]
   (JarFile.
@@ -116,9 +123,11 @@
   (let [entry-list (flatten 
                     (map
                      (fn [p]
-                       (list-entries-for-dir
-                        base-path
-                        (create-resource p (path-if-exists base-path p))))
+                       (filter-and-remove-for-path
+                        p
+                        (list-entries-for-dir
+                         base-path
+                         (create-resource p (path-if-exists base-path p)))))
                      paths))]
     (map (fn [entry]
            (create-resource entry (path-if-exists base-path entry)))
