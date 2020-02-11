@@ -152,7 +152,7 @@
             (jar/jar-file-for-resource resource)))))
     (.list (.toFile (:java-path resource)))))
 
-(defn get-resources-recursive ;:- [Resource]
+(defn get-resources-recursive-old ;:- [Resource]
   [fs-prefix ;:- Prefix
    base-path ;:- VirtualPath
    paths ;:- [VirtualPath]
@@ -187,16 +187,42 @@
 
 ; TODO: rename? Allow base-path to be ""?
 ; base-path must not be ""
-(defn get-resources-recursive-new ;:- [Resource]
+(defn get-resources-recursive ;:- [Resource]
   [fs-prefix ;:- Prefix
    base-path ;:- VirtualPath
    paths ;:- [VirtualPath]
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [fs-resources (fs/get-resources fs-prefix base-path paths)
-        cp-resources (cp/get-resources base-path paths)])
-  )
+  (let [fs-resources (if from-fs 
+                       (fs/get-resources fs-prefix base-path paths)
+                       [])
+        cp-resources (if from-cp 
+                       (cp/get-resources base-path paths)
+                       [])
+        get-virtual-paths (fn [resources] (map #(:virtual-path %) resources))
+        virtual-paths (distinct
+                       (into
+                        (get-virtual-paths fs-resources)
+                        (get-virtual-paths cp-resources)))
+        get-resource-local (fn [virtual-path resource-list]
+                             (loop [rl resource-list]
+                               (if (empty? rl)
+                                 nil
+                                 (let [el (first rl)]
+                                   (if (= (:virtual-path el) virtual-path)
+                                     el
+                                     (recur (rest rl)))))))
+        get-resource-global (fn [virtual-path resources-prio1 resources-prio2]
+                              (let [prio1 (get-resource-local
+                                           virtual-path resources-prio1)]
+                                (if (nil? prio1)
+                                  (get-resource-local
+                                   virtual-path resources-prio2)
+                                  prio1)))]
+    (map 
+     #(get-resource-global % fs-resources cp-resources) 
+     virtual-paths)))
 
  (defn get-resource-paths-recursive ;:- [VirtualPath]
    [fs-prefix ;:- Prefix
