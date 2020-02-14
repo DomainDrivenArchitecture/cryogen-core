@@ -31,32 +31,35 @@
                    ""))))))
 
 (deftest test-create-dirs-from-markup-folders!
-  (is (do
-        (sut/delete-resource-recursive! (str target "2"))
-        (sut/create-dirs-from-markup-folders!
-         "./not-existing-get-from-cp" 
-         "test_posts" 
-         "test_pages"
-         (str target "2") "")
-        (and (ftt/verify-dir-exists
-              (str (str target "2") "/test_pages"))
-             (ftt/verify-dir-exists
-              (str (str target "2") "/test_posts"))
-             (ftt/verify-dir-exists
-              (str (str target "2") "/test_pages/home"))))))
+  (is 
+   (let [target-tmp "target/tmp-test-create-dirs-from-markup-folders"]
+     (sut/delete-resource-recursive! target-tmp)
+     (sut/create-dirs-from-markup-folders!
+      "./not-existing-get-from-cp" 
+      "test_posts" 
+      "test_pages"
+      target-tmp "")
+     (and (ftt/verify-dir-exists
+           (str target-tmp "/test_pages"))
+          (ftt/verify-dir-exists
+           (str target-tmp "/test_posts"))
+          (ftt/verify-dir-exists
+           (str target-tmp "/test_pages/home"))))))
 
-(deftest test-copy-resources-from-theme!  (is (do
-                                                (sut/delete-resource-recursive! target)
-                                                (sut/copy-resources-from-theme! "./" theme target "")
-                                                (and (ftt/verify-dir-exists
-                                                      (str target "/js"))
-                                                     (ftt/verify-file-exists
-                                                      (str target "/js/dummy.js"))
-                                                     (ftt/verify-dir-exists
-                                                      (str target "/js/subdir"))
-                                                     (ftt/verify-file-exists
-                                                      (str target "/js/subdir/subdummy.js"))
-                                                     (ftt/verify-file-exists
-                                                      (str target "/css/dummy.css"))
-                                                     (ftt/verify-file-exists
-                                                      (str target "/404.html"))))))
+(deftest test-copy-resources-from-theme!  
+  (is 
+   (let [target-tmp "target/tmp-test-copy-resources-from-theme"]
+     (sut/delete-resource-recursive! target-tmp)
+     (sut/copy-resources-from-theme! "./" theme target-tmp "")
+     (and (ftt/verify-dir-exists
+           (str target-tmp "/js"))
+          (ftt/verify-file-exists
+           (str target-tmp "/js/dummy.js"))
+          (ftt/verify-dir-exists
+           (str target-tmp "/js/subdir"))
+          (ftt/verify-file-exists
+           (str target-tmp "/js/subdir/subdummy.js"))
+          (ftt/verify-file-exists
+           (str target-tmp "/css/dummy.css"))
+          (ftt/verify-file-exists
+           (str target-tmp "/404.html"))))))

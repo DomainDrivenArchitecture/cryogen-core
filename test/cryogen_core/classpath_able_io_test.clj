@@ -17,8 +17,6 @@
 
 (def theme "bootstrap4-test")
 
-(def target "target/tmp")
-
 (deftest test-get-resources-recursive
   (is (=
        []
@@ -83,7 +81,8 @@
 
 (deftest test-delete-resource-recursive!
   (is
-   (do
-     (.mkdir (io/file target))
-     (sut/delete-resource-recursive! target)
-     (not (ftt/verify-dir-exists target)))))
+   (let [target-tmp "target/tmp3"]
+     (.mkdir (io/file target-tmp))
+     (.createNewFile (io/file (str target-tmp "/file-tmp")))
+     (sut/delete-resource-recursive! target-tmp)
+     (not (ftt/verify-dir-exists target-tmp)))))

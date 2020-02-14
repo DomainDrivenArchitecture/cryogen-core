@@ -230,9 +230,10 @@
                    virtual-path
                    [""]
                    :from-cp false))]
-     (doseq [resource-path resource-paths]
-      (Files/delete (fs/absolut-path virtual-path resource-path))
-      )))
+     (do 
+       (println resource-paths)
+       (doseq [resource-path resource-paths]
+         (Files/delete (fs/absolut-path virtual-path resource-path))))))
  
 ; TODO: add ignore patterns filtering
  (defn copy-resources!
