@@ -185,6 +185,8 @@
                    result))))
       result)))
 
+
+
 ; TODO: rename? Allow base-path to be ""?
 ; base-path must not be ""
 (defn get-resources-recursive ;:- [Resource]
@@ -194,35 +196,17 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [fs-resources (if from-fs 
-                       (fs/get-resources fs-prefix base-path paths)
-                       [])
-        cp-resources (if from-cp 
-                       (cp/get-resources base-path paths)
-                       [])
-        get-virtual-paths (fn [resources] (map #(:virtual-path %) resources))
-        virtual-paths (distinct
-                       (into
-                        (get-virtual-paths fs-resources)
-                        (get-virtual-paths cp-resources)))
-        get-resource-local (fn [virtual-path resource-list]
-                             (loop [rl resource-list]
-                               (if (empty? rl)
-                                 nil
-                                 (let [el (first rl)]
-                                   (if (= (:virtual-path el) virtual-path)
-                                     el
-                                     (recur (rest rl)))))))
-        get-resource-global (fn [virtual-path resources-prio1 resources-prio2]
-                              (let [prio1 (get-resource-local
-                                           virtual-path resources-prio1)]
-                                (if (nil? prio1)
-                                  (get-resource-local
-                                   virtual-path resources-prio2)
-                                  prio1)))]
-    (map 
-     #(get-resource-global % fs-resources cp-resources) 
-     virtual-paths)))
+  (let [virtual-path-map (fn [resource] {(:virtual-path resource) resource})
+        fs-resource-map (if from-fs
+                          (apply merge (map virtual-path-map (fs/get-resources fs-prefix base-path paths)))
+                          {})
+        cp-resource-map (if from-cp
+                          (apply merge (map virtual-path-map (cp/get-resources base-path paths)))
+                          {})
+        resulting-map (merge fs-resource-map cp-resource-map)]
+    (if (empty? resulting-map)
+        []
+        (vals resulting-map))))
 
  (defn get-resource-paths-recursive ;:- [VirtualPath]
    [fs-prefix ;:- Prefix
