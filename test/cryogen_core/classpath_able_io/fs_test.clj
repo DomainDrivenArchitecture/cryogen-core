@@ -34,9 +34,9 @@
   (is
    (sut/path-if-exists fs-root "/File With Space")))
 
-(deftest should-find-path-empty-base-path
+(deftest should-find-path-with-empty-base-path
   (is
-   (sut/path-if-exists fs-root "" "/dummy/dummy_from_fs")))
+   (sut/path-if-exists fs-root nil "/dummy/dummy_from_fs")))
 
 
 (deftest test-list-entries-for-dir
