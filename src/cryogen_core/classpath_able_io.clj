@@ -126,7 +126,7 @@
     ignore-patterns ;:- s/Str
     ]
    (let [resource-paths
-         (get-resource-paths-recursive fs-prefix base-path source-paths)]
+         (sort (get-resource-paths-recursive fs-prefix base-path source-paths))]
      (if (empty? resource-paths)
        (throw (IllegalArgumentException. (str "resource " resource-paths ", "
                                               source-paths " not found")))
