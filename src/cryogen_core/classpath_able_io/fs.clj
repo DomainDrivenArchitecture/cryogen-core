@@ -8,8 +8,7 @@
 
 (ns cryogen-core.classpath-able-io.fs
   (:require [cryogen-core.classpath-able-io.this :as this])
-  (:import [java.net URI]
-           [java.nio.file Paths Files LinkOption]))
+  (:import  [java.nio.file Paths Files LinkOption]))
 
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
