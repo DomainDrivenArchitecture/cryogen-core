@@ -27,9 +27,9 @@
 (def JavaPath this/JavaPath) ; java.nio.Path
 (def Resource this/Resource)
 
-(s/defn create-fs-resource :- this/Resource
-  ([virtual-path :- this/VirtualPath
-    java-path :- this/JavaPath]
+(defn create-fs-resource
+  ([virtual-path
+    java-path]
    {:virtual-path  virtual-path
     :java-uri      (.toUri java-path)
     :java-path     java-path
