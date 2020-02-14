@@ -225,13 +225,14 @@
  (s/defn delete-resource-recursive!
    [virtual-path :- s/Str]
    (let [resource-paths
-         (reverse (get-resource-paths-recursive
-                   (str (fs/user-dir) "/")
-                   virtual-path
-                   [""]
-                   :from-cp false))]
+         (reverse 
+          (sort 
+           (get-resource-paths-recursive
+            (str (fs/user-dir) "/")
+            virtual-path
+            [""]
+            :from-cp false)))]
      (do 
-       (println resource-paths)
        (doseq [resource-path resource-paths]
          (Files/delete (fs/absolut-path virtual-path resource-path))))))
  
