@@ -8,8 +8,6 @@
 
 (ns cryogen-core.classpath-able-io.fs-test
   (:require [clojure.test :refer :all]
-            [clojure.java.io :as io]
-            [schema.core :as s]
             [cryogen-core.file-test-tools :as ftt]
             [cryogen-core.classpath-able-io.fs :as sut]))
 
@@ -23,26 +21,40 @@
    (= (str (sut/user-dir) "/" fs-root "/not-existing")
       (.toString (sut/absolut-path (str fs-root "/not-existing"))))))
 
-(deftest test-path-if-exists
-  (is
-   (sut/path-if-exists (str fs-root "/dummy/dummy_from_fs")))
+(deftest should-return-nil-on-not-existing-path
   (is
    (= nil 
-      (sut/path-if-exists (str fs-root "/not-existing")))))
+      (sut/path-if-exists fs-root "not-existing"))))
+
+(deftest should-find-subdir-path
+  (is
+   (sut/path-if-exists fs-root "/dummy/dummy_from_fs")))
+
+(deftest should-find-path-with-space
+  (is
+   (sut/path-if-exists fs-root "/File With Space")))
+
+(deftest should-find-path-empty-base-path
+  (is
+   (sut/path-if-exists fs-root "" "/dummy/dummy_from_fs")))
+
 
 (deftest test-list-entries-for-dir
   (is 
-   (= ["dummy2" "dummy_from_fs"]
+   (= ["dummy2" 
+       "dummy_from_fs"]
       (sort 
        (seq
         (sut/list-entries-for-dir
          (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy") :filesytem)))))))
 
 (deftest test-get-resources
-  ; TODO: base path should not be empty
   (is
-   (= ["dummy" "dummy/dummy2" "dummy/dummy2/dummy2_from_fs" 
-       "dummy/dummy2/dummy_common" "dummy/dummy_from_fs"]
+   (= ["dummy"
+       "dummy/dummy2"
+       "dummy/dummy2/dummy2_from_fs"
+       "dummy/dummy2/dummy_common"
+       "dummy/dummy_from_fs"]
       (sort (map ftt/filter-path
                  (sut/get-resources fs-root "" ["dummy"])))))
   (is
