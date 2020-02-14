@@ -581,6 +581,7 @@
                                       (cp-io/path "resources/public" blog-prefix)
                                       ignored-files)
     ;(copy-resources-from-markup-folders config)
+    (println (blue "prepare folders for markup"))
     (new-io/create-dirs-from-markup-folders! "resources/"
                                              (:posts config)
                                              (:pages config)
