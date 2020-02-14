@@ -36,6 +36,16 @@
   (let [java-path-str (.toString java-path)]
     (subs java-path-str 0 (- (count java-path-str) (+ (count base-path) (count path) 2)))))
 
+(defn create-resource
+  ([virtual-path
+    java-path]
+   (let [is-jar-resource (jar/is-from-classpath-jar? (.toUri java-path))]
+     (when (some? java-path)
+       (if is-jar-resource
+         (jar/create-resource virtual-path java-path)
+         (fs/create-resource virtual-path java-path :java-classpath-filesystem))
+       ))))
+
 (s/defn get-resources ;:- [this/Resource]
   "base-path is sensible for getting the right jar from classpath. So base-path 
    should be specific enough for the jar desired. Paths must not be empty."

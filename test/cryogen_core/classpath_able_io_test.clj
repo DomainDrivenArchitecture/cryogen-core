@@ -15,8 +15,6 @@
 
 (s/set-fn-validation! true)
 
-(def theme "bootstrap4-test")
-
 (deftest test-get-resources-recursive
   (is (=
        []

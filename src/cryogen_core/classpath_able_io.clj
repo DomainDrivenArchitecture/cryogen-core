@@ -7,16 +7,12 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io
-  (:require [clojure.java.io :as io]
-            [clojure.string :as st]
+  (:require [clojure.string :as st]
             [cryogen-core.classpath-able-io.fs :as fs]
-            [cryogen-core.classpath-able-io.jar :as jar]
             [cryogen-core.classpath-able-io.cp :as cp]
             [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
-  (:import [java.net URI]
-           [java.util.jar JarFile JarEntry]
-           [java.nio.file FileSystems Paths Files LinkOption StandardCopyOption]
+  (:import [java.nio.file Files StandardCopyOption]
            [java.nio.file.attribute FileAttribute]))
 
 (def SourceType this/SourceType)
@@ -27,39 +23,9 @@
 (def JavaPath this/JavaPath) ; java.nio.Path
 (def Resource this/Resource)
 
-(defn create-fs-resource
-  ([virtual-path
-    java-path]
-   {:virtual-path  virtual-path
-    :java-uri      (.toUri java-path)
-    :java-path     java-path
-    :source-type   :filesystem
-    :resource-type (cond
-                     (Files/isDirectory java-path fs/no-link-option) :dir
-                     (Files/isRegularFile java-path fs/no-link-option) :file
-                     :else :unknown)}))
-
-
-(s/defn create-cp-resource :- this/Resource
-  ([virtual-path :- this/VirtualPath
-    java-path :- this/JavaPath]
-   (let [java-uri (.toUri java-path)]
-     {:virtual-path  virtual-path
-      :java-uri      java-uri
-      :java-path     java-path
-      :source-type   (cond (jar/is-from-classpath-jar? java-uri)
-                           :java-classpath-jar
-                           :else :java-classpath-filesystem)
-      :resource-type (cond
-                       (Files/isDirectory java-path fs/no-link-option) :dir
-                       (Files/isRegularFile java-path fs/no-link-option) :file
-                       :else :unknown)})))
-
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
-
-; ------------------- infra ---------------------------------
 
 ; TODO replace this fn ?
 (defn path
@@ -70,27 +36,6 @@
        (st/join "/")
        (#(st/replace % #"/+" "/"))))
 
-; contains either a jar or a file
-(s/defn path-from-cp ;:- JavaPath
-  [resource-path :- this/VirtualPath]
-  (try
-    (let [resource-uri (.toURI (io/resource resource-path))]
-      (when (jar/is-from-classpath-jar? resource-uri)
-        (jar/init-file-system resource-uri))
-      (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
-        (Paths/get resource-uri)))
-    (catch Exception e
-      nil)))
-
-(s/defn path-from-fs ;:- JavaPath
-  [full-path :- this/VirtualPath]
-  (let [path-from-fs (Paths/get (URI. (str "file://" full-path)))] ;fragile
-    (try
-      (when (Files/exists path-from-fs fs/no-link-option)
-        path-from-fs)
-      (catch Exception e
-        nil))))
-
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix
    base-path ;:- VirtualPath
@@ -98,21 +43,15 @@
    & {:keys [from-cp from-fs]
       :or   {from-cp true
              from-fs true}}]
-  (let [full-path    (.toString (fs/absolut-path fs-prefix base-path resource-path))
-        cp-path      (if (empty? base-path)
-                        resource-path
-                        (str base-path "/" resource-path))
-        path-from-fs (if from-fs
-                       (path-from-fs full-path)
-                       nil)
-        path-from-cp (if from-cp
-                       (path-from-cp cp-path)
-                       nil)]
+  (let [path-from-fs (when from-fs
+                       (fs/path-if-exists fs-prefix base-path resource-path))
+        path-from-cp (when from-cp
+                       (cp/path-if-exists))]
     (cond
       (some? path-from-fs)
-      (create-fs-resource resource-path path-from-fs)
+      (fs/create-resource resource-path path-from-fs)
       (some? path-from-cp)
-      (create-cp-resource resource-path path-from-cp)
+      (cp/create-resource resource-path path-from-cp)
       :else nil)))
 
 (defn path-from-cp-or-fs ; :- JavaPath
@@ -128,64 +67,6 @@
                   :from-fs from-fs)]
     (when (some? resource)
       (:java-path resource))))
-
-(defn filter-and-remove-for-dir
-  [path-to-filter-for
-   elements-list]
-  (let [norm-path-to-filter-for  (str path-to-filter-for "/")]
-    (map 
-     #(subs % (count norm-path-to-filter-for))
-     (filter
-      (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
-                         (not (= element norm-path-to-filter-for))))
-      elements-list))))
-
-(s/defn
-  list-entries-for-dir ;:- [VirtualPath]
-  [resource :- this/Resource]
-  (if (= :java-classpath-jar (:source-type resource))
-    (filter-and-remove-for-dir
-     (:virtual-path resource)
-     (map #(.getName ^JarEntry %)
-          (enumeration-seq
-           (.entries
-            (jar/jar-file-for-resource resource)))))
-    (.list (.toFile (:java-path resource)))))
-
-(defn get-resources-recursive-old ;:- [Resource]
-  [fs-prefix ;:- Prefix
-   base-path ;:- VirtualPath
-   paths ;:- [VirtualPath]
-   & {:keys [from-cp from-fs]
-      :or   {from-cp true
-             from-fs true}}]
-  (loop [paths  paths
-         result []]
-    (if (not (empty? paths))
-      (do
-        (let [path-to-work-with     (first paths)
-              resource-to-work-with (resource-from-cp-or-fs
-                                     fs-prefix
-                                     base-path
-                                     path-to-work-with
-                                     :from-cp from-cp
-                                     :from-fs from-fs)
-              result                (into result
-                                          [resource-to-work-with])]
-          ; (println path-to-work-with)
-          ; (println (:java-path resource-to-work-with))
-          (cond
-            (nil? resource-to-work-with) []
-            (this/is-file? resource-to-work-with)
-            (recur (drop 1 paths) result)
-            :else
-            (recur (into (drop 1 paths)
-                         (map #(str path-to-work-with "/" %)
-                              (list-entries-for-dir resource-to-work-with)))
-                   result))))
-      result)))
-
-
 
 ; TODO: rename? Allow base-path to be ""?
 ; base-path must not be ""

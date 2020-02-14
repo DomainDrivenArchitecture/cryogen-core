@@ -20,6 +20,35 @@
    ]
   (= (.getScheme uri) "jar"))
 
+(defn
+  filesystem-uri
+  [resource-uri ;:- JavaUri
+   ]
+  (URI. (first (st/split (.toString resource-uri) #"!"))))
+
+(defn init-file-system
+  [resource-uri ;:- JavaUri
+   ]
+  (try
+    (FileSystems/getFileSystem (filesystem-uri resource-uri))
+    (catch Exception e
+      (FileSystems/newFileSystem (filesystem-uri resource-uri) {}))))
+
+(defn path-if-exists ;:- JavaPath
+  [& path-elements ;:- VirtualPath
+   ]
+  (try
+    (let [resource-uri
+          (.toURI (io/resource
+                   (apply this/virtual-path-from-elements path-elements)))]
+      (when (is-from-classpath-jar? resource-uri)
+        (do
+          (init-file-system resource-uri)
+          (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
+            (Paths/get resource-uri)))))
+    (catch Exception e
+      nil)))
+
 (defn create-resource
   ([virtual-path ;:- VirtualPath
     java-path ;:- JavaPath
@@ -35,36 +64,6 @@
                          (Files/isDirectory java-path fs/no-link-option) :dir
                          (Files/isRegularFile java-path fs/no-link-option) :file
                          :else :unknown)}))))
-
-(defn
-  filesystem-uri
-  [resource-uri ;:- JavaUri
-   ]
-  (URI. (first (st/split (.toString resource-uri) #"!"))))
-
-(defn init-file-system
-  [resource-uri ;:- JavaUri
-   ]
-  (try
-    (FileSystems/getFileSystem (filesystem-uri resource-uri))
-    (catch Exception e
-      (FileSystems/newFileSystem (filesystem-uri resource-uri) {}))))
-
-; (path-if-exists "") => ".../test"
-(defn path-if-exists ;:- JavaPath
-  [& path-elements ;:- VirtualPath
-   ]
-  (try
-    (let [resource-uri 
-          (.toURI (io/resource 
-                   (apply this/virtual-path-from-elements path-elements)))]
-      (when (is-from-classpath-jar? resource-uri)
-        (do
-          (init-file-system resource-uri)
-          (when (Files/exists (Paths/get resource-uri) fs/no-link-option)
-            (Paths/get resource-uri)))))
-    (catch Exception e
-      nil)))
 
 (defn filter-and-remove-for-dir
   [base-path-to-filter-for
