@@ -8,7 +8,6 @@
 
 (ns cryogen-core.classpath-able-io.cp
   (:require [clojure.java.io :as io]
-            [clojure.string :as st]
             [schema.core :as s]
             [cryogen-core.classpath-able-io.this :as this]
             [cryogen-core.classpath-able-io.fs :as fs]

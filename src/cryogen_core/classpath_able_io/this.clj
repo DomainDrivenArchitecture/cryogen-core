@@ -7,8 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io.this
-  (:require [clojure.java.io :as io]
-            [clojure.string :as st]
+  (:require [clojure.string :as st]
             [schema.core :as s]))
 
 (def SourceType (s/enum :java-classpath-filesystem :java-classpath-jar :filesystem))
