@@ -30,13 +30,10 @@
 (defn path-if-exists
   [& path-elements]
   (let [path-from-fs 
-        (Paths/get 
-         (URI. (str "file://" 
-                    (apply absolut-path 
-                           ;TODO: sollte hier nicht auch stehen:
-                           ;(apply this/virtual-path-from-elements path-elements)
-                           path-elements
-                           ))))]
+        (apply absolut-path
+              ;TODO: sollte hier nicht auch stehen:
+              ;(apply this/virtual-path-from-elements path-elements)
+               path-elements)]
     (when (Files/exists path-from-fs follow-link-option)
         path-from-fs)))
 
