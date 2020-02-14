@@ -15,12 +15,6 @@
 
 (def public "resources/public")
 
-(defn copy-resources-from-templates!
-  [fs-prefix resources target-path ignore-patterns]
-  (let [resource-path "templates"]
-    (cp-io/copy-resources! fs-prefix resource-path resources
-                     target-path ignore-patterns)))
-
 (defn copy-resources-from-theme!
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
@@ -33,6 +27,12 @@
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
     (cp-io/copy-resources! fs-prefix theme-path ["html"]
+                           target-path ignore-patterns)))
+
+(defn copy-resources-from-templates!
+  [fs-prefix resources target-path ignore-patterns]
+  (let [resource-path "templates"]
+    (cp-io/copy-resources! fs-prefix resource-path resources
                            target-path ignore-patterns)))
 
 (defn get-distinct-markup-dirs
