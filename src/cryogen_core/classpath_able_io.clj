@@ -49,7 +49,7 @@
                        (cp/path-if-exists))]
     (cond
       (some? path-from-fs)
-      (fs/create-resource resource-path path-from-fs)
+      (fs/create-resource resource-path path-from-fs :filesystem)
       (some? path-from-cp)
       (cp/create-resource resource-path path-from-cp)
       :else nil)))
