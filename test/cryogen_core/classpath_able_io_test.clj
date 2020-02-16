@@ -15,6 +15,18 @@
 
 (s/set-fn-validation! true)
 
+(deftest should-overlay-file211-withfs-and-get-file212-from-jar
+  (is (=
+       ["folder21"
+        "folder21/file211"
+        "folder21/file212"
+        "file22"]
+       (sort 
+        (map ftt/filter-path
+             (sut/get-resources-recursive
+              "fs_root"
+              "base2" ["folder21" "file22"]))))))
+
 (deftest test-get-resources-recursive
   (is (=
        []
