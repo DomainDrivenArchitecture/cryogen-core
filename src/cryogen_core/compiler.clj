@@ -18,7 +18,8 @@
             [cryogen-core.sitemap :as sitemap]
             [clojure.inspector :as inspector]
             [cryogen-core.toc :as toc]
-            [cryogen-core.hierarchic :as hierarchic])
+            [cryogen-core.hierarchic :as hierarchic]
+            [clojure.stacktrace :as strace])
   (:import [java.util Locale]
            [java.net URI]
            [java.io File]))
@@ -620,4 +621,5 @@
        (if (or (instance? IllegalArgumentException e)
                (instance? clojure.lang.ExceptionInfo e))
          (println (red "Error:") (yellow (.getMessage e)))
-         (write-exception e))))))
+         (write-exception e))
+       (strace/print-stack-trace e)))))
