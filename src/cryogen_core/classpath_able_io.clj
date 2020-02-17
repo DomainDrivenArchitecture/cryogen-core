@@ -83,7 +83,7 @@
         cp-resource-map (if from-cp
                           (apply merge (map virtual-path-map (cp/get-resources base-path paths)))
                           {})
-        resulting-map (merge fs-resource-map cp-resource-map)]
+        resulting-map (merge cp-resource-map fs-resource-map)]
     (if (empty? resulting-map)
         []
         (vals resulting-map))))
