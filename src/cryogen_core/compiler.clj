@@ -561,33 +561,29 @@
       (println (blue "debug: home-page:"))
       (println "\t-->" (cyan (-> params :home-page))))
     (new-io/delete-resource-recursive! (.getPath target-file-uri))
-    (new-io/copy-html-from-theme! "resources/"
+    (new-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
+    (println (blue "preparing theme resources"))
+    (new-io/copy-html-from-theme! "content/"
                                   theme
                                   (.getPath target-file-uri)
                                   ignored-files)
-    ;(set-custom-resource-path! (.toString resource-file-uri))
-    (set-custom-resource-path! (.toString target-file-uri))
-    ;(cryogen-io/wipe-public-folder keep-files)
-    (new-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
     (println (blue "copying theme resources"))
-    ;(cryogen-io/copy-resources-from-theme config)
-    (new-io/copy-resources-from-theme! "resources/"
+    (new-io/copy-resources-from-theme! "content/"
                                        theme
                                        (cp-io/path "resources/public" blog-prefix)
                                        ignored-files)
-    (println (blue "copying resources"))
-    ;(cryogen-io/copy-resources config)
-    (new-io/copy-resources-from-templates! "resources/"
-                                      resources
-                                      (cp-io/path "resources/public" blog-prefix)
-                                      ignored-files)
-    ;(copy-resources-from-markup-folders config)
-    (println (blue "prepare folders for markup"))
-    (new-io/create-dirs-from-markup-folders! "resources/"
+    (println (blue "copying markup resources"))
+    (new-io/copy-resources-from-templates! "content/"
+                                           resources
+                                           (cp-io/path "resources/public" blog-prefix)
+                                           ignored-files)
+    (println (blue "prepare folders based on markup"))
+    (new-io/create-dirs-from-markup-folders! "content/"
                                              (:posts config)
                                              (:pages config)
                                              (cp-io/path "resources/public" blog-prefix)
                                              ignored-files)
+    (set-custom-resource-path! (.toString target-file-uri))
     (compile-pages params modelled-pages)
     (compile-posts params posts)
     (compile-tags params posts-by-tag)
