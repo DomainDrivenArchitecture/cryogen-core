@@ -8,11 +8,16 @@
 
 (ns cryogen-core.classpath-able-io.fs
   (:require [cryogen-core.classpath-able-io.this :as this])
-  (:import  [java.nio.file Paths Files LinkOption]))
+  (:import  [java.nio.file Paths Files LinkOption StandardCopyOption]
+            [java.nio.file.attribute FileAttribute]))
 
 ; ----------------------- Domain functions ------------------------
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
 (def follow-link-option (into-array LinkOption []))
+(def no-attributes (into-array FileAttribute []))
+(def overwrite-preserve-attributes 
+  (into-array StandardCopyOption
+              [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
 
 (defn user-dir []
   (java.lang.System/getProperty "user.dir"))

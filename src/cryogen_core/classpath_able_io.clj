@@ -12,8 +12,7 @@
             [cryogen-core.classpath-able-io.cp :as cp]
             [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
-  (:import [java.nio.file Files StandardCopyOption]
-           [java.nio.file.attribute FileAttribute]))
+  (:import  [java.nio.file Files]))
 
 (def SourceType this/SourceType)
 (def ResourceType this/ResourceType)
@@ -125,21 +124,20 @@
     target-path  ;:- VirtualPath
     ignore-patterns ;:- s/Str
     ]
-   (let [resource-paths
-         (sort (get-resource-paths-recursive fs-prefix base-path source-paths))]
-     (if (empty? resource-paths)
-       (throw (IllegalArgumentException. (str "resource " resource-paths ", "
+   (let [resources
+         (sort 
+          this/compare-resource
+          (get-resources-recursive fs-prefix base-path source-paths))]
+     (if (empty? resources)
+       (throw (IllegalArgumentException. (str "resource " base-path ", "
                                               source-paths " not found")))
-       (doseq [resource-path resource-paths]
-         (let [target-file (fs/absolut-path target-path resource-path)
-               source-file (path-from-cp-or-fs
-                            fs-prefix
-                            base-path
-                            resource-path)]
-           (when (Files/isDirectory source-file fs/no-link-option)
-             (Files/createDirectories target-file (into-array FileAttribute [])))
-           (when (Files/isRegularFile source-file fs/no-link-option)
-             (Files/copy source-file target-file (into-array StandardCopyOption [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
+       (doseq [resource resources]
+         (let [target-path (fs/absolut-path target-path (:virtual-path resource))
+               source-path (:java-path resource)]
+           (when (this/is-dir? resource)
+             (Files/createDirectories target-path fs/no-attributes))
+           (when (this/is-file? resource)
+             (Files/copy source-path target-path fs/overwrite-preserve-attributes)
             ))))))
  
  (defn distinct-resources-by-path
