@@ -38,7 +38,7 @@
 (defn get-distinct-markup-dirs
   [fs-prefix posts pages ignore-patterns]
   (let [base-path "templates/md"
-        resources (cp-io/get-resources-recursive
+        resources (cp-io/get-resources
                    fs-prefix base-path [pages posts])
         filtered-resources (->> (filter #(= (:resource-type %) :dir) resources)
                                 (cp-io/distinct-resources-by-path))]

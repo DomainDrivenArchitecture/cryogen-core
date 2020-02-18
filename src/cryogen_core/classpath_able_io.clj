@@ -69,7 +69,7 @@
 
 ; TODO: rename? Allow base-path to be ""?
 ; base-path must not be ""
-(defn get-resources-recursive ;:- [Resource]
+(defn get-resources ;:- [Resource]
   [fs-prefix ;:- Prefix
    base-path ;:- VirtualPath
    paths ;:- [VirtualPath]
@@ -96,7 +96,7 @@
        :or   {from-cp true
               from-fs true}}]
    (map #(:virtual-path %)
-        (get-resources-recursive
+        (get-resources
          fs-prefix base-path paths
          :from-cp from-cp
          :from-fs from-fs)))
@@ -127,7 +127,7 @@
    (let [resources
          (sort 
           this/compare-resource
-          (get-resources-recursive fs-prefix base-path source-paths))]
+          (get-resources fs-prefix base-path source-paths))]
      (if (empty? resources)
        (throw (IllegalArgumentException. (str "resource " base-path ", "
                                               source-paths " not found")))

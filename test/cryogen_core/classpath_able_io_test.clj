@@ -23,41 +23,41 @@
         "folder21/file212"]
        (sort 
         (map ftt/filter-path
-             (sut/get-resources-recursive
+             (sut/get-resources
               "fs_root"
               "base2" ["folder21" "file22"]))))))
 
-(deftest test-get-resources-recursive
+(deftest test-get-resources
   (is (=
        []
-       (sut/get-resources-recursive "" "templates/themes/bootstrap4-test" ["not-existing"])))
+       (sut/get-resources "" "templates/themes/bootstrap4-test" ["not-existing"])))
   (is (=
        [{:virtual-path "dummy_from_jar", :source-type :java-classpath-jar, :resource-type :file}]
        (map ftt/filter-object
-            (sut/get-resources-recursive "not-existing" "dummy" ["dummy_from_jar"]))))
+            (sut/get-resources "not-existing" "dummy" ["dummy_from_jar"]))))
   (is (=
        (sort ["dummy2/dummy2_from_jar" "dummy2/dummy_common" "dummy2" "dummy_from_jar" "dummy_from_fs"
               "dummy2/dummy2_from_fs"])
        (sort (map ftt/filter-path
-                  (sut/get-resources-recursive "fs_root" "dummy" 
+                  (sut/get-resources "fs_root" "dummy" 
                                                ["dummy_from_jar" "dummy_from_fs" "dummy2"])))))
   (is (=
        [{:virtual-path   "js/dummy.js"
          :source-type   :java-classpath-filesystem
          :resource-type :file}]
        (map ftt/filter-object
-            (sut/get-resources-recursive
+            (sut/get-resources
              "" "templates/themes/bootstrap4-test" ["js/dummy.js"]))))
   (is (=
        []
-       (sut/get-resources-recursive
+       (sut/get-resources
         "" "templates/themes/bootstrap4-test" ["js/dummy.js"] :from-cp false)))
   (is (=
        ["js/subdir"
         "js/subdir/subdummy.js"
         "js/subdir/test.js"]
        (sort (map :virtual-path
-                  (sut/get-resources-recursive
+                  (sut/get-resources
                    "" "templates/themes/bootstrap4-test" ["js/subdir"])))))
   (is (=
        ["."
@@ -72,7 +72,7 @@
         "./js/subdir/subdummy.js"
         "./js/subdir/test.js"]
        (sort (map :virtual-path
-                  (sut/get-resources-recursive
+                  (sut/get-resources
                    "test-resources" "templates/themes/bootstrap4-test" ["."]))))))
 
 (deftest test-distinct-resources-by-path
