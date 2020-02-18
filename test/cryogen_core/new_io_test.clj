@@ -33,7 +33,7 @@
 (deftest test-create-dirs-from-markup-folders!
   (is 
    (let [target-tmp "target/tmp-test-create-dirs-from-markup-folders"]
-     (sut/delete-resource-recursive! target-tmp)
+     (sut/delete-resources! target-tmp)
      (sut/create-dirs-from-markup-folders!
       "./not-existing-get-from-cp" 
       "test_posts" 
@@ -49,7 +49,7 @@
 (deftest test-copy-resources-from-theme!  
   (is 
    (let [target-tmp "target/tmp-test-copy-resources-from-theme"]
-     (sut/delete-resource-recursive! target-tmp)
+     (sut/delete-resources! target-tmp)
      (sut/copy-resources-from-theme! "./" theme target-tmp "")
      (and (ftt/verify-dir-exists
            (str target-tmp "/js"))

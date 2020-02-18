@@ -1,17 +1,10 @@
 (ns cryogen-core.io
   (:require [clojure.java.io :as io]
             [clojure.string :as s]
+            [cryogen-core.new-io :as new-io]
             [me.raynes.fs :as fs]))
 
 (def public "resources/public")
-
-(defn path
-  "Creates path from given parts, ignore empty elements"
-  [& path-parts]
-  (->> path-parts
-       (remove s/blank?)
-       (s/join "/")
-       (#(s/replace % #"/+" "/"))))
 
 (defn re-filter [bool-fn re & other-res]
   (let [res (conj other-res re)]
@@ -45,12 +38,12 @@
     []))
 
 (defn create-folder [folder]
-  (let [loc (io/file (path public folder))]
+  (let [loc (io/file (new-io/path public folder))]
     (when-not (.exists loc)
       (.mkdirs loc))))
 
 (defn create-file [file data]
-  (spit (path public file) data))
+  (spit (new-io/path public file) data))
 
 (defn create-file-recursive [file data]
   (create-folder (.getParent (io/file file)))
@@ -74,7 +67,7 @@
 (defn copy-resources [{:keys [blog-prefix resources ignored-files]}]
   (doseq [resource resources]
     (let [src (str "resources/templates/" resource)
-          target (path public blog-prefix (fs/base-name resource))]
+          target (new-io/path public blog-prefix (fs/base-name resource))]
       (cond
         (not (.exists (io/file src)))
         (throw (IllegalArgumentException. (str "resource " src " not found")))

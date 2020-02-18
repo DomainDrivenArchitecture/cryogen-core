@@ -7,11 +7,11 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.new-io
-  (:require 
-   [clojure.java.io :as io]
-   [cryogen-core.classpath-able-io :as cp-io]))
+  (:require [clojure.string :as st]
+            [clojure.java.io :as io]
+            [cryogen-core.classpath-able-io :as cp-io]))
 
-(def delete-resource-recursive! cp-io/delete-resource-recursive!)
+(def delete-resources! cp-io/delete-resources!)
 
 (def public "resources/public")
 
@@ -52,3 +52,11 @@
     (doseq [resource resources]
       (io/make-parents (io/file (str target-path "/" (:virtual-path resource))))
       (.mkdir (io/file (str target-path "/" (:virtual-path resource)))))))
+
+(defn path
+  "Creates path from given parts, ignore empty elements"
+  [& path-parts]
+  (->> path-parts
+       (remove st/blank?)
+       (st/join "/")
+       (#(st/replace % #"/+" "/"))))

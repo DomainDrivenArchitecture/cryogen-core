@@ -89,10 +89,10 @@
        ["file.js"]
        (sut/filter-for-ignore-patterns #".*\.ignore" ["file.js" "file.ignore"]))))
 
-(deftest test-delete-resource-recursive!
+(deftest test-delete-resources!
   (is
    (let [target-tmp "target/tmp3"]
      (.mkdir (io/file target-tmp))
      (.createNewFile (io/file (str target-tmp "/file-tmp")))
-     (sut/delete-resource-recursive! target-tmp)
+     (sut/delete-resources! target-tmp)
      (not (ftt/verify-dir-exists target-tmp)))))

@@ -45,13 +45,13 @@
   at the templates directory."
   [root mu ignored-files]
   (let [assets (cryogen-io/find-assets
-                (cryogen-io/path "templates" (m/dir mu) root)
+                (new-io/path "templates" (m/dir mu) root)
                 (m/ext mu)
                 ignored-files)]
     (if (seq assets)
       assets
       (cryogen-io/find-assets
-       (cryogen-io/path "templates" root)
+       (new-io/path "templates" root)
        (m/ext mu)
        ignored-files))))
 
@@ -79,7 +79,7 @@
                         :as   params}]
    (let [page-uri (get params uri-type)
          uri-end  (if clean-urls? (s/replace file-name #"(index)?\.html" "/") file-name)]
-     (cryogen-io/path "/" blog-prefix page-uri uri-end))))
+     (new-io/path "/" blog-prefix page-uri uri-end))))
 
 (defn read-page-meta
   "Returns the clojure map from the top of a markdown page/post"
@@ -233,7 +233,7 @@
   "When `clean-urls?` is set, appends `/index.html` before spit; otherwise just spits."
   [file-uri {:keys [clean-urls?]} data]
   (if clean-urls?
-    (cryogen-io/create-file-recursive (cryogen-io/path file-uri "index.html") data)
+    (cryogen-io/create-file-recursive (new-io/path file-uri "index.html") data)
     (cryogen-io/create-file file-uri data)))
 
 (defn- print-debug-info [data]
@@ -246,7 +246,7 @@
     :as   params} pages]
   (when-not (empty? pages)
     (println (blue "compiling pages"))
-    ;(cryogen-io/create-folder (cryogen-io/path "/" blog-prefix page-root-uri))
+    ;(cryogen-io/create-folder (new-io/path "/" blog-prefix page-root-uri))
     (doseq [{:keys [uri]
              :as   page} pages]
       (println "-->" (cyan uri))
@@ -258,7 +258,7 @@
                                (merge params
                                       {:active-page     "pages"
                                        :home            false
-                                       :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                                       :servlet-context (new-io/path "/" blog-prefix "/")
                                        :page            page
                                        :uri             uri})))
       (compile-pages params (:children page)))))
@@ -269,7 +269,7 @@
     :as   params} posts]
   (when-not (empty? posts)
     (println (blue "compiling posts"))
-    (cryogen-io/create-folder (cryogen-io/path "/" blog-prefix post-root-uri))
+    (cryogen-io/create-folder (new-io/path "/" blog-prefix post-root-uri))
     (doseq [{:keys [uri]
              :as   post} posts]
       (println "-->" (cyan uri))
@@ -280,7 +280,7 @@
                   (render-file (str "/html/" (:layout post))
                                (merge params
                                       {:active-page      "posts"
-                                       :servlet-context  (cryogen-io/path "/" blog-prefix "/")
+                                       :servlet-context  (new-io/path "/" blog-prefix "/")
                                        :post             post
                                        :disqus-shortname disqus-shortname
                                        :uri              uri}))))))
@@ -291,7 +291,7 @@
     :as   params} posts-by-tag]
   (when-not (empty? posts-by-tag)
     (println (blue "compiling tags"))
-    (cryogen-io/create-folder (cryogen-io/path "/" blog-prefix tag-root-uri))
+    (cryogen-io/create-folder (new-io/path "/" blog-prefix tag-root-uri))
     (doseq [[tag posts] posts-by-tag]
       (let [{:keys [name uri]} (tag-info params tag)]
         (println "-->" (cyan uri))
@@ -300,7 +300,7 @@
                     (render-file "/html/tag.html"
                                  (merge params
                                         {:active-page     "tags"
-                                         :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                                         :servlet-context (new-io/path "/" blog-prefix "/")
                                          :name            name
                                          :posts           posts
                                          :uri             uri})))))))
@@ -315,7 +315,7 @@
                 (render-file "/html/tags.html"
                              (merge params
                                     {:active-page     "tags"
-                                     :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                                     :servlet-context (new-io/path "/" blog-prefix "/")
                                      :uri             uri})))))
 
 (defn content-until-more-marker
@@ -353,8 +353,8 @@
   [previews params]
   (mapv (fn [[prev target next]]
           (merge target
-                 {:prev (if prev (page-uri (cryogen-io/path "p" (str (:index prev) ".html")) params) nil)
-                  :next (if next (page-uri (cryogen-io/path "p" (str (:index next) ".html")) params) nil)}))
+                 {:prev (if prev (page-uri (new-io/path "p" (str (:index prev) ".html")) params) nil)
+                  :next (if next (page-uri (new-io/path "p" (str (:index next) ".html")) params) nil)}))
         (partition 3 1 (flatten [nil previews nil]))))
 
 (defn compile-preview-pages
@@ -368,18 +368,18 @@
           previews (if (> (count previews) 1)
                      (assoc-in previews [1 :prev] (page-uri "index.html" params))
                      previews)]
-      (cryogen-io/create-folder (cryogen-io/path "/" blog-prefix "p"))
+      (cryogen-io/create-folder (new-io/path "/" blog-prefix "p"))
       (doseq [{:keys [index posts prev next]} previews
               :let                            [index-page? (= 1 index)]]
         (write-html
          (if index-page? (page-uri "index.html" params)
-             (page-uri (cryogen-io/path "p" (str index ".html")) params))
+             (page-uri (new-io/path "p" (str index ".html")) params))
          params
          (render-file "/html/previews.html"
                       (merge params
                              {:active-page     "preview"
                               :home            (when index-page? true)
-                              :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                              :servlet-context (new-io/path "/" blog-prefix "/")
                               :posts           posts
                               :prev-uri        prev
                               :next-uri        next})))))))
@@ -416,7 +416,7 @@
                                     {:active-page     "archives"
                                      :archives        true
                                      :groups          (group-for-archive posts)
-                                     :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                                     :servlet-context (new-io/path "/" blog-prefix "/")
                                      :uri             uri})))))
 
 (defn compile-authors
@@ -424,7 +424,7 @@
   [{:keys [blog-prefix author-root-uri author]
     :as   params} posts]
   (println (blue "compiling authors"))
-  (cryogen-io/create-folder (cryogen-io/path "/" blog-prefix author-root-uri))
+  (cryogen-io/create-folder (new-io/path "/" blog-prefix author-root-uri))
   ;; if the post author is empty defaults to config's :author
   (doseq [{:keys [author posts]} (group-for-author posts author)]
     (let [uri (page-uri (str author ".html") :author-root-uri params)]
@@ -435,7 +435,7 @@
                                (merge params
                                       {:author          author
                                        :groups          (group-for-archive posts)
-                                       :servlet-context (cryogen-io/path "/" blog-prefix "/")
+                                       :servlet-context (new-io/path "/" blog-prefix "/")
                                        :uri             uri}))))))
 
 (defn tag-posts
@@ -542,7 +542,7 @@
                        :archives-uri (page-uri "archives.html" config)
                        :index-uri    (page-uri "index.html" config)
                        :tags-uri     (page-uri "tags.html" config)
-                       :rss-uri      (cryogen-io/path "/" blog-prefix rss-name)
+                       :rss-uri      (new-io/path "/" blog-prefix rss-name)
                        :site-url     (if (.endsWith site-url "/") (.substring site-url 0 (dec (count site-url))) site-url)})
         file-resource-prefix "resources/"
         file-target-prefix "target/"
@@ -561,8 +561,8 @@
       (println "\t-->" (cyan target-file-uri))
       (println (blue "debug: home-page:"))
       (println "\t-->" (cyan (-> params :home-page))))
-    (new-io/delete-resource-recursive! (.getPath target-file-uri))
-    (new-io/delete-resource-recursive! (cp-io/path "resources/public" blog-prefix))
+    (new-io/delete-resources! (.getPath target-file-uri))
+    (new-io/delete-resources! (new-io/path "resources/public" blog-prefix))
     (println (blue "preparing theme resources"))
     (new-io/copy-html-from-theme! "content/"
                                   theme
@@ -571,18 +571,18 @@
     (println (blue "copying theme resources"))
     (new-io/copy-resources-from-theme! "content/"
                                        theme
-                                       (cp-io/path "resources/public" blog-prefix)
+                                       (new-io/path "resources/public" blog-prefix)
                                        ignored-files)
     (println (blue "copying markup resources"))
     (new-io/copy-resources-from-templates! "content/"
                                            resources
-                                           (cp-io/path "resources/public" blog-prefix)
+                                           (new-io/path "resources/public" blog-prefix)
                                            ignored-files)
     (println (blue "prepare folders based on markup"))
     (new-io/create-dirs-from-markup-folders! "content/"
                                              (:posts config)
                                              (:pages config)
-                                             (cp-io/path "resources/public" blog-prefix)
+                                             (new-io/path "resources/public" blog-prefix)
                                              ignored-files)
     (set-custom-resource-path! (.toString target-file-uri))
     (compile-pages params modelled-pages)
@@ -598,16 +598,16 @@
       (compile-authors params posts))
     (println (blue "generating site map"))
     (->> (sitemap/generate site-url ignored-files)
-         (cryogen-io/create-file (cryogen-io/path "/" blog-prefix "sitemap.xml")))
+         (cryogen-io/create-file (new-io/path "/" blog-prefix "sitemap.xml")))
     (println (blue "generating main rss"))
     (->> (rss/make-channel config posts)
-         (cryogen-io/create-file (cryogen-io/path "/" blog-prefix rss-name)))
+         (cryogen-io/create-file (new-io/path "/" blog-prefix rss-name)))
     (println (blue "generating filtered rss"))
     (rss/make-filtered-channels config posts-by-tag)
     (println (blue "compiling sass"))
     (sass/compile-sass->css!
      (merge (select-keys config [:sass-path :compass-path :sass-src :ignored-files])
-            {:sass-dest (cryogen-io/path ".." "public" blog-prefix sass-dest)
+            {:sass-dest (new-io/path ".." "public" blog-prefix sass-dest)
              :base-dir  "resources/templates/"}))))
 
 (defn compile-assets-timed []

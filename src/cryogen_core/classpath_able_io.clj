@@ -7,8 +7,7 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io
-  (:require [clojure.string :as st]
-            [cryogen-core.classpath-able-io.fs :as fs]
+  (:require [cryogen-core.classpath-able-io.fs :as fs]
             [cryogen-core.classpath-able-io.cp :as cp]
             [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
@@ -25,15 +24,6 @@
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
-
-; TODO replace this fn ?
-(defn path
-  "Creates path from given parts, ignore empty elements"
-  [& path-parts]
-  (->> path-parts
-       (remove st/blank?)
-       (st/join "/")
-       (#(st/replace % #"/+" "/"))))
 
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix
@@ -102,7 +92,7 @@
          :from-fs from-fs)))
 
 ; TODO: Add files to keep
- (s/defn delete-resource-recursive!
+ (s/defn delete-resources!
    [virtual-path :- s/Str]
    (let [resource-paths
          (reverse 
