@@ -44,6 +44,7 @@
   looking under the implemented protocol's subdirectory, but fallsback to look
   at the templates directory."
   [root mu ignored-files]
+  ; TODO: Find assets in overlay location / move to new-io
   (let [assets (cryogen-io/find-assets
                 (new-io/path "templates" (m/dir mu) root)
                 (m/ext mu)
