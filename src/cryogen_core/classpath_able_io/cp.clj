@@ -42,8 +42,7 @@
      (when (some? java-path)
        (if is-jar-resource
          (jar/create-resource virtual-path java-path)
-         (fs/create-resource virtual-path java-path :java-classpath-filesystem))
-       ))))
+         (fs/create-resource virtual-path java-path :java-classpath-filesystem))))))
 
 (s/defn get-resources ;:- [this/Resource]
   "base-path is sensible for getting the right jar from classpath. So base-path 

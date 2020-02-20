@@ -18,7 +18,7 @@
   (is
    (= "dummy"
       (sut/virtual-path-from-elements "dummy")))
-  (is 
+  (is
    (= "dummy"
       (sut/virtual-path-from-elements "" "dummy" "")))
   (is

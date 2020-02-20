@@ -16,15 +16,14 @@
 
 (deftest test-is-from-classpath-jar?
   (is
-   (sut/is-from-classpath-jar? (.toURI (io/resource "dummy"))))
-  )
+   (sut/is-from-classpath-jar? (.toURI (io/resource "dummy")))))
 
 (deftest test-path-if-exists
   (is
    (sut/path-if-exists "dummy/dummy_from_jar")))
-  (is
-   (= nil
-      (sut/path-if-exists "not-existing")))
+(is
+ (= nil
+    (sut/path-if-exists "not-existing")))
 
 (deftest test-get-resources
   (is

@@ -20,9 +20,9 @@
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
     (cp-io/copy-resources! fs-prefix theme-path ["css" "js"]
-                     target-path ignore-patterns)
+                           target-path ignore-patterns)
     (cp-io/copy-resources! fs-prefix (str theme-path "/html") ["404.html"]
-                     target-path ignore-patterns)))
+                           target-path ignore-patterns)))
 
 (defn copy-html-from-theme!
   [fs-prefix theme target-path ignore-patterns]
@@ -77,7 +77,7 @@ if no, return empty vector."
         filter-ext (fn [xs] (filter #(= (get-file-extension-from-resource %) ext) xs))]
     (->> assets
          filter-file
-         filter-ext)))    
+         filter-ext)))
 
 ;
 ;

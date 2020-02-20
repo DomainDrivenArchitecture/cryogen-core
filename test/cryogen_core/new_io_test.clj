@@ -31,12 +31,12 @@
                    ""))))))
 
 (deftest test-create-dirs-from-markup-folders!
-  (is 
+  (is
    (let [target-tmp "target/tmp-test-create-dirs-from-markup-folders"]
      (sut/delete-resources! target-tmp)
      (sut/create-dirs-from-markup-folders!
-      "./not-existing-get-from-cp" 
-      "test_posts" 
+      "./not-existing-get-from-cp"
+      "test_posts"
       "test_pages"
       target-tmp "")
      (and (ftt/verify-dir-exists
@@ -46,8 +46,8 @@
           (ftt/verify-dir-exists
            (str target-tmp "/test_pages/home"))))))
 
-(deftest test-copy-resources-from-theme!  
-  (is 
+(deftest test-copy-resources-from-theme!
+  (is
    (let [target-tmp "target/tmp-test-copy-resources-from-theme"]
      (sut/delete-resources! target-tmp)
      (sut/copy-resources-from-theme! "./" theme target-tmp "")

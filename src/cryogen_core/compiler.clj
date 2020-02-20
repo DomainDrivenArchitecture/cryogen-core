@@ -514,7 +514,7 @@
         klipsified-pages (map klipsify (read-pages config))
         modelled-pages (cond
                          (= page-model :flat) klipsified-pages
-                         (= page-model :hierarchic) 
+                         (= page-model :hierarchic)
                          (hierarchic/build-hierarchic-map page-root-uri klipsified-pages))
         home-page (->> modelled-pages
                        (filter #(boolean (:home? %)))

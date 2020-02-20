@@ -21,7 +21,7 @@
         "folder21"
         "folder21/file211"
         "folder21/file212"]
-       (sort 
+       (sort
         (map ftt/filter-path
              (sut/get-resources
               "fs_root"
@@ -39,8 +39,8 @@
        (sort ["dummy2/dummy2_from_jar" "dummy2/dummy_common" "dummy2" "dummy_from_jar" "dummy_from_fs"
               "dummy2/dummy2_from_fs"])
        (sort (map ftt/filter-path
-                  (sut/get-resources "fs_root" "dummy" 
-                                               ["dummy_from_jar" "dummy_from_fs" "dummy2"])))))
+                  (sut/get-resources "fs_root" "dummy"
+                                     ["dummy_from_jar" "dummy_from_fs" "dummy2"])))))
   (is (=
        [{:virtual-path   "js/dummy.js"
          :source-type   :java-classpath-filesystem

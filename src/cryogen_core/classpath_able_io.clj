@@ -75,68 +75,67 @@
                           {})
         resulting-map (merge cp-resource-map fs-resource-map)]
     (if (empty? resulting-map)
-        []
-        (vals resulting-map))))
+      []
+      (vals resulting-map))))
 
- (defn get-resource-paths-recursive ;:- [VirtualPath]
-   [fs-prefix ;:- Prefix
-    base-path ;:- VirtualPath
-    paths ;:- [VirtualPath]
-    & {:keys [from-cp from-fs]
-       :or   {from-cp true
-              from-fs true}}]
-   (map #(:virtual-path %)
-        (get-resources
-         fs-prefix base-path paths
-         :from-cp from-cp
-         :from-fs from-fs)))
+(defn get-resource-paths-recursive ;:- [VirtualPath]
+  [fs-prefix ;:- Prefix
+   base-path ;:- VirtualPath
+   paths ;:- [VirtualPath]
+   & {:keys [from-cp from-fs]
+      :or   {from-cp true
+             from-fs true}}]
+  (map #(:virtual-path %)
+       (get-resources
+        fs-prefix base-path paths
+        :from-cp from-cp
+        :from-fs from-fs)))
 
 ; TODO: Add files to keep
- (s/defn delete-resources!
-   [virtual-path :- s/Str]
-   (let [resource-paths
-         (reverse 
-          (sort 
-           (get-resource-paths-recursive
-            (str (fs/user-dir) "/")
-            virtual-path
-            [""]
-            :from-cp false)))]
-     (do 
-       (doseq [resource-path resource-paths]
-         (Files/delete (fs/absolut-path virtual-path resource-path))))))
- 
+(s/defn delete-resources!
+  [virtual-path :- s/Str]
+  (let [resource-paths
+        (reverse
+         (sort
+          (get-resource-paths-recursive
+           (str (fs/user-dir) "/")
+           virtual-path
+           [""]
+           :from-cp false)))]
+    (do
+      (doseq [resource-path resource-paths]
+        (Files/delete (fs/absolut-path virtual-path resource-path))))))
+
 ; TODO: add ignore patterns filtering
- (defn copy-resources!
-   [fs-prefix ;:- Prefix
-    base-path ;:- VirtualPath
-    source-paths ;:- [VirtualPath]
-    target-path  ;:- VirtualPath
-    ignore-patterns ;:- s/Str
-    ]
-   (let [resources
-         (sort 
-          this/compare-resource
-          (get-resources fs-prefix base-path source-paths))]
-     (if (empty? resources)
-       (throw (IllegalArgumentException. (str "resource " base-path ", "
-                                              source-paths " not found")))
-       (doseq [resource resources]
-         (let [target-path (fs/absolut-path target-path (:virtual-path resource))
-               source-path (:java-path resource)]
-           (when (this/is-dir? resource)
-             (Files/createDirectories target-path fs/no-attributes))
-           (when (this/is-file? resource)
-             (Files/copy source-path target-path fs/overwrite-preserve-attributes)
-            ))))))
- 
- (defn distinct-resources-by-path
-   [resources]
-   (loop [paths (set (map :virtual-path resources))
-          resources resources
-          acc []]
-     (cond (empty? resources) acc
-           (contains? paths (:virtual-path (first resources))) (recur (disj paths (:virtual-path (first resources)))
-                                                                      (rest resources)
-                                                                      (conj acc (first resources)))
-           :else (recur paths (rest resources) acc))))
+(defn copy-resources!
+  [fs-prefix ;:- Prefix
+   base-path ;:- VirtualPath
+   source-paths ;:- [VirtualPath]
+   target-path  ;:- VirtualPath
+   ignore-patterns ;:- s/Str
+   ]
+  (let [resources
+        (sort
+         this/compare-resource
+         (get-resources fs-prefix base-path source-paths))]
+    (if (empty? resources)
+      (throw (IllegalArgumentException. (str "resource " base-path ", "
+                                             source-paths " not found")))
+      (doseq [resource resources]
+        (let [target-path (fs/absolut-path target-path (:virtual-path resource))
+              source-path (:java-path resource)]
+          (when (this/is-dir? resource)
+            (Files/createDirectories target-path fs/no-attributes))
+          (when (this/is-file? resource)
+            (Files/copy source-path target-path fs/overwrite-preserve-attributes)))))))
+
+(defn distinct-resources-by-path
+  [resources]
+  (loop [paths (set (map :virtual-path resources))
+         resources resources
+         acc []]
+    (cond (empty? resources) acc
+          (contains? paths (:virtual-path (first resources))) (recur (disj paths (:virtual-path (first resources)))
+                                                                     (rest resources)
+                                                                     (conj acc (first resources)))
+          :else (recur paths (rest resources) acc))))

@@ -23,7 +23,7 @@
 
 (deftest should-return-nil-on-not-existing-path
   (is
-   (= nil 
+   (= nil
       (sut/path-if-exists fs-root "not-existing"))))
 
 (deftest should-find-subdir-path
@@ -38,12 +38,11 @@
   (is
    (sut/path-if-exists fs-root nil "/dummy/dummy_from_fs")))
 
-
 (deftest test-list-entries-for-dir
-  (is 
-   (= ["dummy2" 
+  (is
+   (= ["dummy2"
        "dummy_from_fs"]
-      (sort 
+      (sort
        (seq
         (sut/list-entries-for-dir
          (sut/create-resource "dummy" (sut/path-if-exists fs-root "dummy") :filesytem)))))))

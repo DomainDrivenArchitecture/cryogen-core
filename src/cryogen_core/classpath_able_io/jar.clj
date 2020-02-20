@@ -70,14 +70,14 @@
    elements-list]
   (let [norm-path-to-filter-for  (str base-path-to-filter-for "/")
         start (count norm-path-to-filter-for)]
-     (map
-      (fn [el]
-        (let [end (if (st/ends-with? el "/") (dec (count el)) (count el))]
-          (subs el start end)))
-      (filter
-       (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
-                          (not (= element norm-path-to-filter-for))))
-       elements-list))))
+    (map
+     (fn [el]
+       (let [end (if (st/ends-with? el "/") (dec (count el)) (count el))]
+         (subs el start end)))
+     (filter
+      (fn [element] (and (st/starts-with? element norm-path-to-filter-for)
+                         (not (= element norm-path-to-filter-for))))
+      elements-list))))
 
 (defn filter-and-remove-for-path
   [path-to-filter-for
@@ -119,7 +119,7 @@
   [base-path ;:- VirtualPath
    paths ;:- [VirtualPath]
    ]
-  (let [entry-list (flatten 
+  (let [entry-list (flatten
                     (map
                      (fn [p]
                        (filter-and-remove-for-path

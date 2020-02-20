@@ -15,7 +15,7 @@
 (def no-link-option (into-array [LinkOption/NOFOLLOW_LINKS]))
 (def follow-link-option (into-array LinkOption []))
 (def no-attributes (into-array FileAttribute []))
-(def overwrite-preserve-attributes 
+(def overwrite-preserve-attributes
   (into-array StandardCopyOption
               [StandardCopyOption/COPY_ATTRIBUTES StandardCopyOption/REPLACE_EXISTING]))
 
@@ -33,11 +33,11 @@
 
 (defn path-if-exists
   [& path-elements]
-  (let [path-from-fs 
+  (let [path-from-fs
         (absolut-path
          (apply this/virtual-path-from-elements path-elements))]
     (when (Files/exists path-from-fs follow-link-option)
-        path-from-fs)))
+      path-from-fs)))
 
 (defn create-resource
   ([virtual-path
@@ -59,40 +59,40 @@
     source-type]
    (create-resource virtual-path (path-if-exists fs-prefix base-path virtual-path) source-type)))
 
- (defn
-   list-entries-for-dir
-   [resource]
-   (.list (.toFile (:java-path resource))))
+(defn
+  list-entries-for-dir
+  [resource]
+  (.list (.toFile (:java-path resource))))
 
- (defn get-resources ;:- [Resource]
-   ([fs-prefix ;:- Prefix
-     base-path ;:- VirtualPath
-     paths ;:- [VirtualPath]
-     source-type]
-    (loop [paths  paths
-           result []]
-      (if (not (empty? paths))
-        (let [path-to-work-with     (first paths)
-              resource-to-work-with (create-resource
-                                     fs-prefix
-                                     base-path
-                                     path-to-work-with
-                                     source-type)
-              result                (into result
-                                          [resource-to-work-with])]
-          (cond
-            (nil? resource-to-work-with) (recur (drop 1 paths) result)
-            (this/is-file? resource-to-work-with)
-            (recur (drop 1 paths) result)
-            (this/is-dir? resource-to-work-with)
-            (recur (into (drop 1 paths)
-                         (map #(str path-to-work-with "/" %)
-                              (list-entries-for-dir resource-to-work-with)))
-                   result)
-            :else []))
-        (remove nil? result))))
-([fs-prefix ;:- Prefix
-  base-path ;:- VirtualPath
-  paths ;:- [VirtualPath]
-  ]
-  (get-resources fs-prefix base-path paths :filesystem)))
+(defn get-resources ;:- [Resource]
+  ([fs-prefix ;:- Prefix
+    base-path ;:- VirtualPath
+    paths ;:- [VirtualPath]
+    source-type]
+   (loop [paths  paths
+          result []]
+     (if (not (empty? paths))
+       (let [path-to-work-with     (first paths)
+             resource-to-work-with (create-resource
+                                    fs-prefix
+                                    base-path
+                                    path-to-work-with
+                                    source-type)
+             result                (into result
+                                         [resource-to-work-with])]
+         (cond
+           (nil? resource-to-work-with) (recur (drop 1 paths) result)
+           (this/is-file? resource-to-work-with)
+           (recur (drop 1 paths) result)
+           (this/is-dir? resource-to-work-with)
+           (recur (into (drop 1 paths)
+                        (map #(str path-to-work-with "/" %)
+                             (list-entries-for-dir resource-to-work-with)))
+                  result)
+           :else []))
+       (remove nil? result))))
+  ([fs-prefix ;:- Prefix
+    base-path ;:- VirtualPath
+    paths ;:- [VirtualPath]
+    ]
+   (get-resources fs-prefix base-path paths :filesystem)))

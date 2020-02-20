@@ -38,7 +38,7 @@
            (filter #(not (empty? %))
                    path-elements)))
 
-(s/defn  compare-resource 
+(s/defn  compare-resource
   [first :- Resource
    second :- Resource]
   (compare (:virtual-path first) (:virtual-path second)))

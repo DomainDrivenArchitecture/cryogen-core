@@ -21,7 +21,6 @@
   (is
    (sut/path-if-exists "dummy_only_in_cp_fs")))
 
-
 (deftest should-get-resources-from-jar-and-fs-classpath
   (is (=
        []
