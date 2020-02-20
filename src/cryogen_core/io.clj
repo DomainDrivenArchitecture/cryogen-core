@@ -24,19 +24,6 @@
           matches (map #(re-find % name) ignored-files)]
       (not (some seq matches)))))
 
-(defn find-assets
-  "Find all assets in the given root directory (f) and the given file
-  extension (ext) ignoring any files that match the given (ignored-files).
-  First make sure that the root directory exists, if yes: process as normal;
-  if no, return empty vector."
-  [f ^String ext ignored-files]
-  (if-let [root (get-resource f)]
-    (->> (get-resource f)
-         file-seq
-         (filter (ignore ignored-files))
-         (filter (fn [^java.io.File file] (-> file .getName (.endsWith ext)))))
-    []))
-
 (defn create-folder [folder]
   (let [loc (io/file (new-io/path public folder))]
     (when-not (.exists loc)
@@ -48,11 +35,6 @@
 (defn create-file-recursive [file data]
   (create-folder (.getParent (io/file file)))
   (create-file file data))
-
-(defn wipe-public-folder [keep-files]
-  (let [filenamefilter (reify java.io.FilenameFilter (accept [this _ filename] (not (some #{filename} keep-files))))]
-    (doseq [path (.listFiles (io/file public) filenamefilter)]
-      (fs/delete-dir path))))
 
 (defn copy-dir [src target ignored-files]
   (fs/mkdirs target)
@@ -75,13 +57,3 @@
         (copy-dir src target ignored-files)
         :else
         (fs/copy src target)))))
-
-(defn copy-resources-from-theme
-  "Copy resources from theme"
-  [config]
-  (let [theme-path (str "themes/" (:theme config))]
-    (copy-resources
-     (merge config
-            {:resources [(str theme-path "/css")
-                         (str theme-path "/js")
-                         (str theme-path "/html/404.html")]}))))
