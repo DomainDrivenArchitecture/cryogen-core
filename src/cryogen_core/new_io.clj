@@ -60,3 +60,20 @@
        (remove st/blank?)
        (st/join "/")
        (#(st/replace % #"/+" "/"))))
+
+(defn get-file-extension-from-resource
+  [resource]
+  (str "." (last (st/split (:virtual-path resource) #"\."))))
+
+(defn find-assets
+  "Find all assets in the given root directory (f) and the given file
+extension (ext) ignoring any files that match the given (ignored-files).
+First make sure that the root directory exists, if yes: process as normal;
+if no, return empty vector."
+  [base-path paths ext ignored-files]
+  (let [assets (cp-io/get-resources "" base-path paths)
+        filter-file (fn [xs] (filter #(= (:resource-type %) :file) xs))
+        filter-ext (fn [xs] (filter #(= (get-file-extension-from-resource %) ext) xs))]
+    (->> assets
+         filter-file
+         filter-ext)))    
