@@ -3,14 +3,14 @@
             [clojure.set :as set]
             [hawk.core :as hawk]
             [pandect.algo.md5 :as md5]
-            [cryogen-core.io :as cryogen-io]))
+            [cryogen-core.new-io :as new-io]))
 
 (defn get-assets [path ignored-files]
   (->> path
        io/file
        file-seq
        (filter #(not (.isDirectory ^java.io.File %)))
-       (filter (cryogen-io/ignore ignored-files))))
+       (filter (new-io/ignore ignored-files))))
 
 (defn checksums [path ignored-files]
   (let [files (get-assets path ignored-files)]

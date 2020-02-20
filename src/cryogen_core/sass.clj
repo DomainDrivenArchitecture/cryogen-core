@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.java.shell :as shell]
             [text-decoration.core :refer :all]
-            [cryogen-core.io :as cryogen-io]))
+            [cryogen-core.new-io :as new-io]))
 
 (defmacro sh
   [& args]
@@ -26,10 +26,10 @@
   "Given a Diretory, gets files, Filtered to those having scss or sass
    extention. Ignores files matching any ignored regexps."
   [base-dir dir ignored-files]
-  (let [^java.io.FilenameFilter filename-filter (cryogen-io/match-re-filter #"(?i:s[ca]ss$)")]
+  (let [^java.io.FilenameFilter filename-filter (new-io/match-re-filter #"(?i:s[ca]ss$)")]
     (->> (.listFiles (io/file base-dir dir) filename-filter)
          (filter #(not (.isDirectory ^java.io.File %)))
-         (filter (cryogen-io/ignore ignored-files))
+         (filter (new-io/ignore ignored-files))
          (map #(.getName ^java.io.File %)))))
 
 (defn compile-sass-file!

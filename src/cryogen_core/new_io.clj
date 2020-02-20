@@ -9,7 +9,8 @@
 (ns cryogen-core.new-io
   (:require [clojure.string :as st]
             [clojure.java.io :as io]
-            [cryogen-core.classpath-able-io :as cp-io]))
+            [cryogen-core.classpath-able-io :as cp-io]
+            [me.raynes.fs :as fs]))
 
 (def delete-resources! cp-io/delete-resources!)
 
@@ -77,3 +78,69 @@ if no, return empty vector."
     (->> assets
          filter-file
          filter-ext)))    
+
+;
+;
+; taken from io.clj
+
+(defn re-filter [bool-fn re & other-res]
+  (let [res (conj other-res re)]
+    (reify java.io.FilenameFilter
+      (accept [this _ name]
+        (bool-fn (some #(re-find % name) res))))))
+
+(def match-re-filter (partial re-filter some?))
+(def reject-re-filter (partial re-filter nil?))
+
+(defn copy-dir [src target ignored-files]
+  (fs/mkdirs target)
+  (let [^java.io.FilenameFilter filename-filter (apply reject-re-filter ignored-files)
+        files (.listFiles (io/file src) filename-filter)]
+    (doseq [^java.io.File f files]
+      (let [out (io/file target (.getName f))]
+        (if (.isDirectory f)
+          (copy-dir f out ignored-files)
+          (io/copy f out))))))
+
+(defn create-folder [folder]
+  (let [loc (io/file (path public folder))]
+    (when-not (.exists loc)
+      (.mkdirs loc))))
+
+(defn create-file [file data]
+  (spit (path public file) data))
+
+(defn create-file-recursive [file data]
+  (create-folder (.getParent (io/file file)))
+  (create-file file data))
+
+(defn copy-dir [src target ignored-files]
+  (fs/mkdirs target)
+  (let [^java.io.FilenameFilter filename-filter (apply reject-re-filter ignored-files)
+        files (.listFiles (io/file src) filename-filter)]
+    (doseq [^java.io.File f files]
+      (let [out (io/file target (.getName f))]
+        (if (.isDirectory f)
+          (copy-dir f out ignored-files)
+          (io/copy f out))))))
+
+(defn copy-resources [{:keys [blog-prefix resources ignored-files]}]
+  (doseq [resource resources]
+    (let [src (str "resources/templates/" resource)
+          target (path public blog-prefix (fs/base-name resource))]
+      (cond
+        (not (.exists (io/file src)))
+        (throw (IllegalArgumentException. (str "resource " src " not found")))
+        (.isDirectory (io/file src))
+        (copy-dir src target ignored-files)
+        :else
+        (fs/copy src target)))))
+
+(defn ignore [ignored-files]
+  (fn [^java.io.File file]
+    (let [name    (.getName file)
+          matches (map #(re-find % name) ignored-files)]
+      (not (some seq matches)))))
+
+(defn get-resource [resource]
+  (-> resource io/resource io/file))

@@ -8,7 +8,6 @@
             [selmer.util :refer [set-custom-resource-path!]]
             [text-decoration.core :refer :all]
             ; TODO: remove all cryogen-io occurance
-            [cryogen-core.io :as cryogen-io]
             [cryogen-core.new-io :as new-io]
             [cryogen-core.classpath-able-io :as cp-io]
             [cryogen-core.klipse :as klipse]
@@ -227,8 +226,8 @@
   "When `clean-urls?` is set, appends `/index.html` before spit; otherwise just spits."
   [file-uri {:keys [clean-urls?]} data]
   (if clean-urls?
-    (cryogen-io/create-file-recursive (new-io/path file-uri "index.html") data)
-    (cryogen-io/create-file file-uri data)))
+    (new-io/create-file-recursive (new-io/path file-uri "index.html") data)
+    (new-io/create-file file-uri data)))
 
 (defn- print-debug-info [data]
   (println "DEBUG:")
@@ -263,7 +262,7 @@
     :as   params} posts]
   (when-not (empty? posts)
     (println (blue "compiling posts"))
-    (cryogen-io/create-folder (new-io/path "/" blog-prefix post-root-uri))
+    (new-io/create-folder (new-io/path "/" blog-prefix post-root-uri))
     (doseq [{:keys [uri]
              :as   post} posts]
       (println "-->" (cyan uri))
@@ -285,7 +284,7 @@
     :as   params} posts-by-tag]
   (when-not (empty? posts-by-tag)
     (println (blue "compiling tags"))
-    (cryogen-io/create-folder (new-io/path "/" blog-prefix tag-root-uri))
+    (new-io/create-folder (new-io/path "/" blog-prefix tag-root-uri))
     (doseq [[tag posts] posts-by-tag]
       (let [{:keys [name uri]} (tag-info params tag)]
         (println "-->" (cyan uri))
@@ -362,7 +361,7 @@
           previews (if (> (count previews) 1)
                      (assoc-in previews [1 :prev] (page-uri "index.html" params))
                      previews)]
-      (cryogen-io/create-folder (new-io/path "/" blog-prefix "p"))
+      (new-io/create-folder (new-io/path "/" blog-prefix "p"))
       (doseq [{:keys [index posts prev next]} previews
               :let                            [index-page? (= 1 index)]]
         (write-html
@@ -418,7 +417,7 @@
   [{:keys [blog-prefix author-root-uri author]
     :as   params} posts]
   (println (blue "compiling authors"))
-  (cryogen-io/create-folder (new-io/path "/" blog-prefix author-root-uri))
+  (new-io/create-folder (new-io/path "/" blog-prefix author-root-uri))
   ;; if the post author is empty defaults to config's :author
   (doseq [{:keys [author posts]} (group-for-author posts author)]
     (let [uri (page-uri (str author ".html") :author-root-uri params)]
@@ -454,7 +453,7 @@
     :as   config}]
   (let [folders (->> (markup-entries post-root page-root)
                      (filter template-dir?))]
-    (cryogen-io/copy-resources
+    (new-io/copy-resources
      (merge config
             {:resources     folders
              :ignored-files (map #(re-pattern-from-ext (m/ext %)) (m/markups))}))))
@@ -464,7 +463,7 @@
   []
   (try
     (let [config (-> "templates/config.edn"
-                     cryogen-io/get-resource
+                     new-io/get-resource
                      slurp
                      read-string
                      (update-in [:blog-prefix] (fnil str ""))
@@ -592,10 +591,10 @@
       (compile-authors params posts))
     (println (blue "generating site map"))
     (->> (sitemap/generate site-url ignored-files)
-         (cryogen-io/create-file (new-io/path "/" blog-prefix "sitemap.xml")))
+         (new-io/create-file (new-io/path "/" blog-prefix "sitemap.xml")))
     (println (blue "generating main rss"))
     (->> (rss/make-channel config posts)
-         (cryogen-io/create-file (new-io/path "/" blog-prefix rss-name)))
+         (new-io/create-file (new-io/path "/" blog-prefix rss-name)))
     (println (blue "generating filtered rss"))
     (rss/make-filtered-channels config posts-by-tag)
     (println (blue "compiling sass"))

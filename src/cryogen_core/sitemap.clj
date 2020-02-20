@@ -1,6 +1,5 @@
 (ns cryogen-core.sitemap
   (:require [clojure.xml :refer [emit]]
-            [cryogen-core.io :as cryogen-io]
             [cryogen-core.new-io :as new-io])
   (:import java.util.Date))
 
