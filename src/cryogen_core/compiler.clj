@@ -44,17 +44,10 @@
   looking under the implemented protocol's subdirectory, but fallsback to look
   at the templates directory."
   [root mu ignored-files]
-  ; TODO: Find assets in overlay location / move to new-io
-  (let [assets (cryogen-io/find-assets
-                (new-io/path "templates" (m/dir mu) root)
-                (m/ext mu)
-                ignored-files)]
+  (let [assets (new-io/find-assets (str "templates/" (m/dir mu)) [root] (m/ext mu) ignored-files)]
     (if (seq assets)
       assets
-      (cryogen-io/find-assets
-       (new-io/path "templates" root)
-       (m/ext mu)
-       ignored-files))))
+      (new-io/find-assets "templates" [root] (m/ext mu) ignored-files))))
 
 (defn find-posts
   "Returns a list of markdown files representing posts under the post root."
