@@ -72,12 +72,15 @@ extension (ext) ignoring any files that match the given (ignored-files).
 First make sure that the root directory exists, if yes: process as normal;
 if no, return empty vector."
   [base-path paths ext ignored-files]
-  (let [assets (cp-io/get-resources "" base-path paths)
+  (let [assets (cp-io/get-resources "content" base-path paths)
         filter-file (fn [xs] (filter #(= (:resource-type %) :file) xs))
-        filter-ext (fn [xs] (filter #(= (get-file-extension-from-resource %) ext) xs))]
+        filter-ext (fn [xs] (filter #(= (get-file-extension-from-resource %) ext) xs))
+        cast-file (fn [java-path] (io/as-file (.toString java-path)))
+        get-java-path (fn [map-entry] (cast-file (:java-path map-entry)))]
     (->> assets
          filter-file
-         filter-ext)))
+         filter-ext
+         (map get-java-path))))
 
 ;
 ;

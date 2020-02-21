@@ -68,7 +68,7 @@ and more content.
             (let [entries (check-fn mu)]
               (is (= 1 (count entries)))
               (is (= (.getAbsolutePath (File. (str dir File/separator file)))
-                     (.toString (.toAbsolutePath (:java-path (first entries)))))))
+                     (.getAbsolutePath (first entries)))))
             (reset-resources)))))))
 
 (defmacro with-markup [mu & body]
