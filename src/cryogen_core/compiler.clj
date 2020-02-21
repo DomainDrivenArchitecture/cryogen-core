@@ -43,10 +43,11 @@
   looking under the implemented protocol's subdirectory, but fallsback to look
   at the templates directory."
   [root mu ignored-files]
-  (let [assets (new-io/find-assets (str "templates/" (m/dir mu)) [root] (m/ext mu) ignored-files)]
+  (let [assets (new-io/find-assets "content" (str "templates/" (m/dir mu)) 
+                                   [root] (m/ext mu) ignored-files)]
     (if (seq assets)
       assets
-      (new-io/find-assets "templates" [root] (m/ext mu) ignored-files))))
+      (new-io/find-assets "content" "templates" [root] (m/ext mu) ignored-files))))
 
 (defn find-posts
   "Returns a list of markdown files representing posts under the post root."
