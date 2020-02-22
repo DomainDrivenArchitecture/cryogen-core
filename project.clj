@@ -1,4 +1,4 @@
-(defproject dda/cryogen-core "0.2.0"
+(defproject dda/cryogen-core "0.2.1-SNAPSHOT"
   :description "Cryogen's compiler"
   :url "https://github.com/cryogen-project/cryogen-core"
   :license {:name "Eclipse Public License"
