@@ -19,7 +19,7 @@
 (defn copy-resources-from-theme!
   [fs-prefix theme target-path ignore-patterns]
   (let [theme-path (str "templates/themes/" theme)]
-    (cp-io/copy-resources! fs-prefix theme-path ["css" "js"]
+    (cp-io/copy-resources! fs-prefix theme-path ["css" "js" "img"]
                            target-path ignore-patterns)
     (cp-io/copy-resources! fs-prefix (str theme-path "/html") ["404.html"]
                            target-path ignore-patterns)))
