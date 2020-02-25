@@ -36,12 +36,8 @@
 
 (defn filter-resources-for-ignore-patterns
   [ignore-patterns resources]
-  (let [files (filter #(= (:resource-type %)  :file) resources)
-        dirs (filter #(= (:resource-type %)  :dir) resources)
-        filtered-files (filter
-         #(not (re-matches (re-pattern ignore-patterns) (get-filename-from-resource %)))
-         files)]
-(concat dirs filtered-files)))
+  (filter #(not (re-matches (re-pattern ignore-patterns) (:virtual-path %)))
+          resources))
 
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix
