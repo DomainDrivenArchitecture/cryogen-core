@@ -7,7 +7,8 @@
 ;   You must not remove this notice, or any other, from this software.
 
 (ns cryogen-core.classpath-able-io
-  (:require [cryogen-core.classpath-able-io.fs :as fs]
+  (:require [clojure.string :as st]
+            [cryogen-core.classpath-able-io.fs :as fs]
             [cryogen-core.classpath-able-io.cp :as cp]
             [cryogen-core.classpath-able-io.this :as this]
             [schema.core :as s])
@@ -21,9 +22,26 @@
 (def JavaPath this/JavaPath) ; java.nio.Path
 (def Resource this/Resource)
 
+(defn get-file-extension-from-resource
+  [resource]
+  (str "." (last (st/split (:virtual-path resource) #"\."))))
+
+(defn get-filename-from-resource
+  [resource]
+   (last (st/split (:virtual-path resource) #"\/")))
+
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
   (filter #(not (re-matches ignore-patterns %)) source-list))
+
+(defn filter-resources-for-ignore-patterns
+  [ignore-patterns resources]
+  (let [files (filter #(= (:resource-type %)  :file) resources)
+        dirs (filter #(= (:resource-type %)  :dir) resources)
+        filtered-files (filter
+         #(not (re-matches (re-pattern ignore-patterns) (get-filename-from-resource %)))
+         files)]
+(concat dirs filtered-files)))
 
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix
@@ -106,7 +124,6 @@
       (doseq [resource-path resource-paths]
         (Files/delete (fs/absolut-path virtual-path resource-path))))))
 
-; TODO: add ignore patterns filtering
 (defn copy-resources!
   [fs-prefix ;:- Prefix
    base-path ;:- VirtualPath
@@ -114,10 +131,8 @@
    target-path  ;:- VirtualPath
    ignore-patterns ;:- s/Str
    ]
-  (let [resources
-        (sort
-         this/compare-resource
-         (get-resources fs-prefix base-path source-paths))]
+  (let [resources (sort this/compare-resource (get-resources fs-prefix base-path source-paths))
+        resources (filter-resources-for-ignore-patterns ignore-patterns resources) ]
     (if (empty? resources)
       (throw (IllegalArgumentException. (str "resource " base-path ", "
                                              source-paths " not found")))
