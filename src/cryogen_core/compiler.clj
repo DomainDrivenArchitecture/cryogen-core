@@ -42,21 +42,21 @@
   implemented Markup protocol and specified root directory. It defaults to
   looking under the implemented protocol's subdirectory, but fallsback to look
   at the templates directory."
-  [root mu ignored-files]
-  (let [assets (new-io/find-assets (str "templates/" (m/dir mu)) [root] (m/ext mu) ignored-files)]
+  [root mu fs-prefix ignored-files]
+  (let [assets (new-io/find-assets (str "templates/" (m/dir mu)) [root] fs-prefix (m/ext mu) ignored-files)]
     (if (seq assets)
       assets
-      (new-io/find-assets "templates" [root] (m/ext mu) ignored-files))))
+      (new-io/find-assets "templates" [root] fs-prefix (m/ext mu) ignored-files))))
 
 (defn find-posts
   "Returns a list of markdown files representing posts under the post root."
-  [{:keys [post-root ignored-files]} mu]
-  (find-entries post-root mu ignored-files))
+  [{:keys [post-root fs-prefix ignored-files]} mu]
+  (find-entries post-root mu fs-prefix ignored-files))
 
 (defn find-pages
   "Returns a list of markdown files representing pages under the page root."
-  [{:keys [page-root ignored-files]} mu]
-  (find-entries page-root mu ignored-files))
+  [{:keys [page-root fs-prefix ignored-files]} mu]
+  (find-entries page-root mu fs-prefix ignored-files))
 
 (defn parse-post-date
   "Parses the post date from the post's file name and returns the corresponding java date object"
@@ -466,6 +466,7 @@
                      new-io/get-resource
                      slurp
                      read-string
+                     (update-in [:fs-prefix] (fnil str ""))
                      (update-in [:blog-prefix] (fnil str ""))
                      (update-in [:page-root] (fnil str ""))
                      (update-in [:post-root] (fnil str ""))
