@@ -71,12 +71,11 @@ if no, return empty vector."
   (let [assets (cp-io/get-resources fs-prefix base-path paths)
         filter-file (fn [xs] (filter #(= (:resource-type %) :file) xs))
         filter-ext (fn [xs] (filter #(= (cp-io/get-file-extension-from-resource %) ext) xs))
-        cast-file (fn [java-path] (io/as-file (.toString java-path)))
-        get-java-path (fn [map-entry] (cast-file (:java-path map-entry)))]
+        get-java-file (fn [map-entry] (.toFile (:java-path map-entry)))]
     (->> assets
          filter-file
          filter-ext
-         (map get-java-path))))
+         (map get-java-file))))
 
 ;
 ;

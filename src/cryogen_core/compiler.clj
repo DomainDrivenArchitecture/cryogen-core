@@ -466,7 +466,7 @@
                      new-io/get-resource
                      slurp
                      read-string
-                     (update-in [:fs-prefix] (fnil str ""))
+                     (update-in [:fs-prefix] (fnil str "content"))
                      (update-in [:blog-prefix] (fnil str ""))
                      (update-in [:page-root] (fnil str ""))
                      (update-in [:post-root] (fnil str ""))

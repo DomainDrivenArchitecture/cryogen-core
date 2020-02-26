@@ -128,7 +128,7 @@
    ignore-patterns ;:- s/Str
    ]
   (let [resources (sort this/compare-resource (get-resources fs-prefix base-path source-paths))
-        resources (filter-resources-for-ignore-patterns ignore-patterns resources) ]
+        resources (filter-resources-for-ignore-patterns ignore-patterns resources)]
     (if (empty? resources)
       (throw (IllegalArgumentException. (str "resource " base-path ", "
                                              source-paths " not found")))
