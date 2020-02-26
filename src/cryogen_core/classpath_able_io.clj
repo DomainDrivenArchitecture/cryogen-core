@@ -32,7 +32,7 @@
 
 (defn filter-for-ignore-patterns
   [ignore-patterns source-list]
-  (filter #(not (re-matches ignore-patterns %)) source-list))
+  (filter #(not (re-matches (re-pattern ignore-patterns) %)) source-list))
 
 (defn filter-resources-for-ignore-patterns
   [ignore-patterns resources]
@@ -107,18 +107,21 @@
 
 ; TODO: Add files to keep
 (s/defn delete-resources!
-  [virtual-path :- s/Str]
-  (let [resource-paths
-        (reverse
-         (sort
-          (get-resource-paths-recursive
-           (str (fs/user-dir) "/")
-           virtual-path
-           [""]
-           :from-cp false)))]
-    (do
-      (doseq [resource-path resource-paths]
-        (Files/delete (fs/absolut-path virtual-path resource-path))))))
+  ([virtual-path :- s/Str] (delete-resources! virtual-path nil))
+  ([virtual-path :- s/Str ignore-patterns]
+   (let [resource-paths
+         (reverse
+          (sort
+           (get-resource-paths-recursive
+            (str (fs/user-dir) "/")
+            virtual-path
+            [""]
+            :from-cp false)))
+         resource-paths-filtered (if ignore-patterns 
+                                   (filter-for-ignore-patterns ignore-patterns resource-paths)
+                                   resource-paths)]
+     (doseq [resource-path resource-paths-filtered]
+       (Files/delete (fs/absolut-path virtual-path resource-path))))))
 
 (defn copy-resources!
   [fs-prefix ;:- Prefix
