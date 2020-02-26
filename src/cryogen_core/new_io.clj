@@ -41,8 +41,9 @@
   (let [base-path "templates/md"
         resources (cp-io/get-resources
                    fs-prefix base-path [pages posts])
-        filtered-resources (->> (filter #(= (:resource-type %) :dir) resources)
-                                (cp-io/distinct-resources-by-path))]
+        filtered-resources (cp-io/filter-resources-for-ignore-patterns ignore-patterns 
+                              (->> (filter #(= (:resource-type %) :dir) resources)
+                                   (cp-io/distinct-resources-by-path)))]
     filtered-resources))
 
 (defn create-dirs-from-markup-folders!
@@ -75,6 +76,7 @@ if no, return empty vector."
     (->> assets
          filter-file
          filter-ext
+         (cp-io/filter-resources-for-ignore-patterns ignored-files)
          (map get-java-file))))
 
 ;

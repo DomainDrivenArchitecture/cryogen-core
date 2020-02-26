@@ -36,8 +36,10 @@
 
 (defn filter-resources-for-ignore-patterns
   [ignore-patterns resources]
-  (filter #(not (re-matches (re-pattern ignore-patterns) (:virtual-path %)))
-          resources))
+  (if ignore-patterns
+    (filter #(not (re-matches (re-pattern ignore-patterns) (:virtual-path %)))
+            resources)
+    resources))
 
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix
