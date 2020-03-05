@@ -5,7 +5,7 @@
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [camel-snake-kebab "0.4.1"]
-                 [cheshire "5.9.0"]
+                 [cheshire "5.10.0"]
                  [clj-rss "0.2.5"]
                  [clj-text-decoration "0.0.3"]
                  [enlive "1.1.6"]
@@ -29,4 +29,13 @@
                     :exclusions [commons-logging]}}
              :test {:source-paths ["test"]
                     :resource-paths ["test-resources"]
-                    :dependencies [[dda/dummy "0.1.0-SNAPSHOT"]]}})
+                    :dependencies [[dda/dummy "0.1.0-SNAPSHOT"]]}}
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["deploy"]
+                  ["uberjar"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]])
