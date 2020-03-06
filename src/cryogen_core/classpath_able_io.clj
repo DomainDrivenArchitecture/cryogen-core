@@ -34,12 +34,19 @@
   [ignore-patterns source-list]
   (filter #(not (re-matches (re-pattern ignore-patterns) %)) source-list))
 
+(defn filter-one-pattern
+  [ignore-patterns resources]
+  (if (not (empty? (:virtual-path (first resources))))
+    (filter #(not (re-matches ignore-patterns (:virtual-path %))) resources)
+    resources))
+
 (defn filter-resources-for-ignore-patterns
   [ignore-patterns resources]
-  (if ignore-patterns
-    (filter #(not (re-matches (re-pattern ignore-patterns) (:virtual-path %)))
-            resources)
-    resources))
+  (let [ignore-patterns (into [] ignore-patterns)
+        pattern (peek ignore-patterns)]
+    (if pattern
+      (filter-resources-for-ignore-patterns (pop ignore-patterns) (filter-one-pattern pattern resources))
+      resources)))
 
 (defn resource-from-cp-or-fs ;:- Resource 
   [fs-prefix ;:- Prefix

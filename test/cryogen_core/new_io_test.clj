@@ -28,7 +28,7 @@
                   (sut/get-distinct-markup-dirs
                    "./not-existing-get-from-cp"
                    "test_posts" "test_pages"
-                   ""))))))
+                   [#""]))))))
 
 (deftest test-create-dirs-from-markup-folders!
   (is
@@ -38,7 +38,7 @@
       "./not-existing-get-from-cp"
       "test_posts"
       "test_pages"
-      target-tmp "")
+      target-tmp [#""])
      (and (ftt/verify-dir-exists
            (str target-tmp "/test_pages"))
           (ftt/verify-dir-exists
@@ -50,7 +50,7 @@
   (is
    (let [target-tmp "target/tmp-test-copy-resources-from-theme"]
      (sut/delete-resources! target-tmp)
-     (sut/copy-resources-from-theme! "./" theme target-tmp "")
+     (sut/copy-resources-from-theme! "./" theme target-tmp [#""])
      (and (ftt/verify-dir-exists
            (str target-tmp "/js"))
           (ftt/verify-file-exists
