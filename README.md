@@ -13,7 +13,7 @@
 Additional Features:
 
 * Navmap feature for nested navigation (see: https://github.com/cryogen-project/cryogen-core/pull/81)
-* Theme default can be read from classpath, filesystem overwrites.
+* Spring like Overlay-Filesystem: Theme can be published bundled in a jar but you can easily place your overwrites in filesystem.
 
 ## License
 
