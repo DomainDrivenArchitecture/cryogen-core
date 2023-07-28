@@ -15,6 +15,17 @@ Additional Features:
 * Navmap feature for nested navigation (see: https://github.com/cryogen-project/cryogen-core/pull/81)
 * Spring like Overlay-Filesystem: Theme can be published bundled in a jar but you can easily place your overwrites in filesystem.
 
+## Development & mirrors
+
+Development happens at: https://repo.prod.meissa.de/meissa/cryogen-core
+
+Mirrors are:
+
+* https://gitlab.com/domaindrivenarchitecture/cryogen-core (issues and PR, CI)
+* https://github.com/DomainDrivenArchitecture/cryogen-core
+
+For more details about our repository model see: https://repo.prod.meissa.de/meissa/federate-your-repos
+
 ## License
 
 Copyright © 2014 Carmen La, 2017, 2020 meissa
